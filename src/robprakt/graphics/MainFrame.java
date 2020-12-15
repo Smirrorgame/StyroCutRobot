@@ -1,15 +1,16 @@
 package robprakt.graphics;
 
-import javax.swing.JFrame;
-import javax.swing.JLayeredPane;
-import javax.swing.border.EmptyBorder;
 import java.awt.CardLayout;
-import javax.swing.JPanel;
+import java.awt.Color;
 import java.awt.FlowLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLayeredPane;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
+
+import robprakt.network.TCPClient;
 
 public class MainFrame extends JFrame {
 	
@@ -20,14 +21,14 @@ public class MainFrame extends JFrame {
 	
 	protected CmdPane cmdPane;
 	
-	protected ConnectPane menuPane;
+	protected ConnectPane connectPane;
 	
 	private JPanel contentPane;
 
 	/**
 	 * Buttons
 	 */
-	protected JButton btnCmd, btnMenu;
+	protected JButton btnCmd, btnConnect;
 
 	/**
 	 * Controller for actions
@@ -36,25 +37,36 @@ public class MainFrame extends JFrame {
 	
 	
 	/**
+	 * Network Entities
+	 */
+	private TCPClient client;
+	
+	/**
 	 * Create the main frame.
 	 */
 	public MainFrame(String title) {
+		setResizable(false);
 		setTitle(title);
 		setVisible(true);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 800, 600);
 
+		// creating the controller
+		controller = new Controller(this);
 		
+
 		contentPane = new JPanel();
+		contentPane.setBackground(Color.LIGHT_GRAY);
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
 		
-		btnMenu = new JButton("Verbinden");
-		btnMenu.setBounds(173, 11, 170, 70);
-		contentPane.add(btnMenu);
-		
+		// Knopf zum Öffnen des Verbindungsmenüs
+		btnConnect = new JButton("Verbinden");
+		btnConnect.setBounds(210, 11, 170, 70);
+		contentPane.add(btnConnect);
+		// Knopf zum Öffnen des Kommandomenüs
 		btnCmd = new JButton("Direkte Kommandos");
-		btnCmd.setBounds(374, 11, 170, 70);
+		btnCmd.setBounds(390, 11, 170, 70);
 		contentPane.add(btnCmd);
 		
 		layeredPane = new JLayeredPane();
@@ -62,17 +74,19 @@ public class MainFrame extends JFrame {
 		layeredPane.setBounds(0, 150, 784, 410);
 		layeredPane.setLayout(new CardLayout(0, 0));
 		
-		menuPane = new ConnectPane();
-		layeredPane.add(menuPane, "name_266637540072800");
-		menuPane.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+		connectPane = new ConnectPane(controller);
+		layeredPane.add(connectPane, "name_266637540072800");
+		connectPane.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+		connectPane.setLayout(null);
 		
-		cmdPane = new CmdPane();
+		cmdPane = new CmdPane(controller);
 		layeredPane.add(cmdPane, "name_266637553746400");
 		cmdPane.setLayout(null);
 		
 		contentPane.add(layeredPane);
-		// setting the controller
-		controller = new Controller(this);
 		revalidate();
+		
+		//Listener initialisieren
+		controller.initialListeners();
 	}
 }

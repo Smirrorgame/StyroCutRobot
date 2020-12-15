@@ -9,18 +9,16 @@ import java.net.UnknownHostException;
  * @author Micha Halla
  * this class represents a TCP client
  */
-class TCPClient extends NetEntity {
-	
-	/**
-	 * the connection socket
-	 */
-//	private Socket socket;
-	
+public class TCPClient extends NetEntity {
+		
 	/**
 	 * the ip to connect to
 	 */
 	private String ip;
 	
+	/**
+	 * the port to connect to
+	 */
 	private int port;
 
 	/**
@@ -44,7 +42,7 @@ class TCPClient extends NetEntity {
 			System.err.println("Unknown Host");
 			e.printStackTrace();
 		} catch (IOException e) {
-			System.err.println("Problems to connect, is server started?");
+			System.err.println("Problems to connect, is the server started?");
 			return false;
 		}
 		initStreams(socket);

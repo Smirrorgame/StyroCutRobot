@@ -1,47 +1,64 @@
 package robprakt.graphics;
 
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-
-import javax.swing.JButton;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
+import java.awt.Font;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.awt.event.ActionEvent;
+
+import javax.swing.JButton;
 import javax.swing.JLabel;
-import java.awt.Font;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.JTextPane;
 
 public class CmdPane extends JPanel {
+	
+	/**
+	 * command input text field
+	 */
 	private JTextField cmdTxt;
+	
+	/**
+	 * Robot response text field
+	 */
+	private JTextPane responseField;
 
+	/**
+	 * the controller
+	 */
+	private Controller controller;
 	/**
 	 * Create the frame.
 	 */
-	public CmdPane() {
-		setBounds(100, 100, 800, 600);
+	public CmdPane(Controller controller) {
+		this.controller = controller;
+		setBounds(100, 100, 790, 410);
 		setLayout(null);
 		
 		cmdTxt = new JTextField();
 		cmdTxt.setFont(new Font("Calibri", Font.PLAIN, 30));
 		cmdTxt.setToolTipText("Schreibe hier deinen Befehl für den Roboter");
-		cmdTxt.setBounds(10, 189, 567, 75);
+		cmdTxt.setBounds(10, 112, 567, 50);
 		add(cmdTxt);
-		cmdTxt.setColumns(10);
+		cmdTxt.setColumns(1);
 		
 		JButton btnSend = new JButton("Senden");
-		btnSend.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-			}
-		});
-		btnSend.setBounds(623, 189, 123, 75);
+		btnSend.setBounds(623, 112, 123, 50);
 		add(btnSend);
 		
 		JLabel label = new JLabel("Sende deine Befehle an den Roboter");
 		label.setFont(new Font("Calibri", Font.PLAIN, 30));
-		label.setBounds(10, 88, 567, 90);
+		label.setBounds(10, 11, 567, 90);
 		add(label);
+		
+		responseField = new JTextPane();
+		responseField.setEditable(false);
+		responseField.setText("Antwort vom Roboter");
+		responseField.setToolTipText("Antwort vom Roboter");
+		responseField.setFont(new Font("Calibri", Font.PLAIN, 30));
+		responseField.setBounds(10, 270, 567, 50);
+		add(responseField);
 		
 		
 		cmdTxt.addKeyListener(new KeyListener() {
@@ -75,6 +92,18 @@ public class CmdPane extends JPanel {
 	 */
 	private void sendMsg() {
 		String s;
-		if((s=cmdTxt.getText()).length()>0) System.out.println("Sending message:\n"+s);
+		if((s=cmdTxt.getText()).length()>0) {
+			cmdTxt.setText("");
+			if (!controller.send(s)) {
+				responseField.setText("An Error Occured, maybe not connected?");
+				return;
+			}
+			String response = controller.response();
+			if(response.contains("disconnected")){
+				responseField.setText("Die Verbindung wurde getrennt!");
+			}else {
+				responseField.setText(response);
+			}
+		}
 	}
 }

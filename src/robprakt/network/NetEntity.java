@@ -80,8 +80,9 @@ abstract class NetEntity {
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
-			System.exit(0);
+//			e.printStackTrace();
+//			System.exit(0);
+			return "You have been disconnected";
 		}
 		
 		return null;
