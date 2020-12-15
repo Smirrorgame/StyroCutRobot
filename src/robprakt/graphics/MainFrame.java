@@ -51,7 +51,7 @@ public class MainFrame extends JFrame {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 800, 600);
 
-		// creating the controller
+		// controller erstellen
 		controller = new Controller(this);
 		
 
@@ -69,6 +69,7 @@ public class MainFrame extends JFrame {
 		btnCmd.setBounds(390, 11, 170, 70);
 		contentPane.add(btnCmd);
 		
+		//containerpanel für cmd und connect layout
 		layeredPane = new JLayeredPane();
 		layeredPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		layeredPane.setBounds(0, 150, 784, 410);
