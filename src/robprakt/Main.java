@@ -7,7 +7,7 @@ import robprakt.graphics.MainFrame;
 public class Main {	
 	
 	public static void main(String[] args) {
-		MainFrame frame = new MainFrame("StyroCutRobot Setup Manager");
+		new MainFrame("StyroCutRobot Setup Manager");
 	}
 	
 	

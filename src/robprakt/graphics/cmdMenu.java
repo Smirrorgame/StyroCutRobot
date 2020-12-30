@@ -224,7 +224,7 @@ public class cmdMenu extends JPanel{
 			}
 		};
 		
-		//cutter-robot
+		//holder-robot
 		FocusListener FocusListenerR2 = new FocusListener() {
 
 			@Override
@@ -237,7 +237,7 @@ public class cmdMenu extends JPanel{
 				focusTxtR2 = false;
 			}
 		};
-		//cutter-robot
+		//tracking-system
 		FocusListener FocusListenerTS = new FocusListener() {
 
 			@Override

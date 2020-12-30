@@ -57,10 +57,11 @@ public class Controller {
 	
 	/**
 	 * connect to Server
-	 * @param ip the server ip
+	 * @param ip the server ip for the specified connection
 	 * @param port the port on which the server is running
+	 * @param client TCPClient that is initially null. 3 different clients for each server
 	 */
-	protected boolean connect(String ip, int port) {
+	protected boolean connect(String ip, int port, TCPClient client) {
 		client = new TCPClient(ip, port);
 		return client.connect();
 	}
