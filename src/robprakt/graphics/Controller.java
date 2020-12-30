@@ -32,6 +32,30 @@ public class Controller {
 	}
 	
 	/**
+	 * Getter for TCPClient for cutter-robot
+	 * @return clientR1
+	 */
+	public TCPClient getClientR1() {
+		return clientR1;
+	}
+	
+	/**
+	 * Getter for TCPClient for holder-robot
+	 * @return clientR1
+	 */
+	public TCPClient getClientR2() {
+		return clientR2;
+	}
+	
+	/**
+	 * Getter for TCPClient for tracking-system
+	 * @return clientTS
+	 */
+	public TCPClient getClientTS() {
+		return clientTS;
+	}
+	
+	/**
 	 * connect to Server
 	 * @param ip the server ip
 	 * @param port the port on which the server is running
@@ -51,72 +75,27 @@ public class Controller {
 	}
 
 	/**
-	 * send command to cutter-robot
-	 * @param command
+	 * send command to server suitable to TCPClient by TCPClient
+	 * @param command to send to server
+	 * @param client TCPClient that is needed for Server
 	 */
-	protected boolean sendR1(String command) {
-		if(clientR1!=null) {
-			clientR1.sendData(command);
+	protected boolean send(String command, TCPClient client) {
+		if(client!=null) {
+			client.sendData(command);
 			return true;
 		}
 		return false;
 	}
 	
 	/**
-	 * send command to holder-robot
-	 * @param command
-	 */
-	protected boolean sendR2(String command) {
-		if(clientR2!=null) {
-			clientR2.sendData(command);
-			return true;
-		}
-		return false;
-	}
-	
-	/**
-	 * send command to tracking-system
-	 * @param command
-	 */
-	protected boolean sendTS(String command) {
-		if(clientTS!=null) {
-			clientTS.sendData(command);
-			return true;
-		}
-		return false;
-	}
-	
-	/**
-	 * receive Message from cutter-robot
+	 * receive message from server to TCPClient
+	 * @param client contains the client that communicates with the server
 	 * @return the received message
 	 */
-	protected String responseR1() {
-		if(clientR1!=null) {
-			return clientR1.receiveData();
+	protected String response(TCPClient client) {
+		if(client!=null) {
+			return client.receiveData();
 		}
 		return "ERROR, not connected to cutter-robot!";
 	}
-	
-	/**
-	 * receive Message from holder-robot
-	 * @return the received message
-	 */
-	protected String responseR2() {
-		if(clientR2!=null) {
-			return clientR2.receiveData();
-		}
-		return "ERROR, not connected to holder-robot!";
-	}
-	
-	/**
-	 * receive Message from tracking-system
-	 * @return the received message
-	 */
-	protected String responseTS() {
-		if(clientTS!=null) {
-			return clientTS.receiveData();
-		}
-		return "ERROR, not connected to tracking-system!";
-	}
-
 }

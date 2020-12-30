@@ -19,18 +19,15 @@ import javax.swing.JTextField;
 import javax.swing.JTextPane;
 
 import robprakt.Constants;
+import robprakt.network.TCPClient;
 
 /**
- * Class cmdMenu contains components for the command-menu. It implements functionality to send commands to servers.
+ * Class cmdMenu extends JPanel and contains components for the command-menu.
+ * It implements functionality to send commands to servers.
  * @author Micha
  * @author Moritz
  */
-public class cmdMenu {
-	
-	/**
-	 * cmdPane contains components for command manager
-	 */
-	private JPanel cmdPane;
+public class cmdMenu extends JPanel{
 	
 	/**
 	 * cmdPane is split up into 3 JPanel rows containing components for communication
@@ -115,15 +112,15 @@ public class cmdMenu {
 		//########COMPONENTS#######
 		//#########################
 		// splitting up cmdPane into 3 rows
-		cmdPane = new JPanel(new GridLayout(3,1));
+		this.setLayout(new GridLayout(3,1));
 		// generating JPanel with GridBagLayout
 		row1 = new JPanel(new GridBagLayout());
 		row2 = new JPanel(new GridBagLayout());
 		row3 = new JPanel(new GridBagLayout());
 		// adding rows to cmdPane
-		cmdPane.add(row1);
-		cmdPane.add(row2);
-		cmdPane.add(row3);
+		add(row1);
+		add(row2);
+		add(row3);
 		
 		
 		// defining dimensions and constraints of the components
@@ -343,73 +340,70 @@ public class cmdMenu {
 	}
 	
 	/**
-	 * Getter for cmdPane.
-	 * @return cmdPane
-	 */
-	protected JPanel getCmdPane() {
-		return cmdPane;
-	}
-	
-	
-	
-	/**
 	 * send command of a specified text field to the server
 	 * @param serverType defines which server to communicate with
 	 */
 	private void sendCmd(String serverType) {
 		String cmd;
-		//get command
+		TCPClient client;
+		//get command and client for according to the serverType
 		if (serverType.equals("cutter-robot")) {
 			cmd = cmdTxtR1.getText();
+			client = this.controller.getClientR1();
 		} else if (serverType.equals("holder-robot")) {
 			cmd = cmdTxtR2.getText();
+			client = this.controller.getClientR2();
 		} else {
 			cmd = cmdTxtTS.getText();
+			client = this.controller.getClientTS();
 		}
 		
 		//if there is nothing to send, do nothing
 		if (cmd.length() == 0) return; 
 		
 		//reset text field and send command if possible and write response into suitable response field
-		//cutter-robot
 		if (serverType.equals("cutter-robot")) {
 			cmdTxtR1.setText("");
-			if (!controller.sendR1(cmd)) {
-				responseFieldR1.setText("An Error occured, maybe not connected?");
-				return;
-			}
-			String response = controller.responseR1();
-			if(response.contains("disconnected")){
-				responseFieldR1.setText("Connection has been closed!");
-			}else {
-				responseFieldR1.setText(response);
-			}
-			//holder-robot
 		} else if (serverType.equals("holder-robot")) {
 			cmdTxtR2.setText("");
-			if (!controller.sendR2(cmd)) {
-				responseFieldR2.setText("An Error occured, maybe not connected?");
-				return;
-			}
-			String response = controller.responseR2();
-			if(response.contains("disconnected")){
-				responseFieldR2.setText("Connection has been closed!");
-			}else {
-				responseFieldR2.setText(response);
-			}
-			//tracking-system
 		} else {
 			cmdTxtTS.setText("");
-			if (!controller.sendTS(cmd)) {
+		}
+		
+		//if client does not exist, print out error-message
+		if (!controller.send(cmd,client)) {
+			if (serverType.equals("cutter-robot")) {
+				responseFieldR1.setText("An Error occured, maybe not connected?");
+				return;	
+			} else if (serverType.equals("holder-robot")) {
+				responseFieldR2.setText("An Error occured, maybe not connected?");
+				return;
+			} else {
 				responseFieldTS.setText("An Error occured, maybe not connected?");
 				return;
 			}
-			String response = controller.responseTS();
-			if(response.contains("disconnected")){
+		}
+		
+		//print response of the server
+		String response = controller.response(client);
+		if(response.contains("disconnected")){
+			if (serverType.equals("cutter-robot")) {
+				responseFieldR1.setText("Connection has been closed!");	
+			} else if (serverType.equals("holder-robot")) {
+				responseFieldR2.setText("Connection has been closed!");
+			} else {
 				responseFieldTS.setText("Connection has been closed!");
-			}else {
+			}
+			
+		}else {
+			if (serverType.equals("cutter-robot")) {
+				responseFieldR1.setText(response);
+			} else if (serverType.equals("holder-robot")) {
+				responseFieldR2.setText(response);
+			} else {
 				responseFieldTS.setText(response);
 			}
+			
 		}
 	}
 }

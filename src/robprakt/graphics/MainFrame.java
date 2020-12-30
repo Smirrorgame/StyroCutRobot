@@ -57,8 +57,8 @@ public class MainFrame extends JFrame {
 		cmdMenu = new cmdMenu(controller);
 		
 		// adding menus to tabbedPane
-		tabbedContentPane.add("connections",connectionMenu.getConnectPane());
-		tabbedContentPane.add("commands",cmdMenu.getCmdPane());
+		tabbedContentPane.add("connections",connectionMenu);
+		tabbedContentPane.add("commands",cmdMenu);
 
 		revalidate();
 	}
