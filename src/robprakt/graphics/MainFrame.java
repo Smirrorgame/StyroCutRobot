@@ -1,93 +1,65 @@
 package robprakt.graphics;
 
-import java.awt.CardLayout;
 import java.awt.Color;
-import java.awt.FlowLayout;
+import java.awt.Toolkit;
 
-import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JLayeredPane;
-import javax.swing.JPanel;
-import javax.swing.border.EmptyBorder;
+import javax.swing.JTabbedPane;
 
-import robprakt.network.TCPClient;
+import robprakt.Constants;
 
 public class MainFrame extends JFrame {
 	
 	/**
-	 * Panels
+	 * Tabbed ContentPane for managing menus
 	 */
-	private JLayeredPane layeredPane;
+	private JTabbedPane tabbedContentPane;
 	
-	protected CmdPane cmdPane;
-	
-	protected ConnectPane connectPane;
-	
-	private JPanel contentPane;
-
 	/**
-	 * Buttons
+	 * Contains graphics structure for the connection menu
 	 */
-	protected JButton btnCmd, btnConnect;
-
+	private connectionMenu connectionMenu;
+	
+	/**
+	 * Contains graphics structure for the command menu
+	 */
+	private cmdMenu cmdMenu;
+	
 	/**
 	 * Controller for actions
 	 */
 	private Controller controller;
 	
-	
-	/**
-	 * Network Entities
-	 */
-	private TCPClient client;
-	
 	/**
 	 * Create the main frame.
 	 */
 	public MainFrame(String title) {
+		
+		//settings for window
 		setResizable(false);
 		setTitle(title);
 		setVisible(true);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 800, 600);
+		setBounds(	(int) Toolkit.getDefaultToolkit().getScreenSize().getWidth()-Constants.mainFrameWidth,
+					(int) Toolkit.getDefaultToolkit().getScreenSize().getHeight()/2-Constants.mainFrameHeight/2,
+					Constants.mainFrameWidth, Constants.mainFrameHeight);
 
-		// controller erstellen
+		// create controller
 		controller = new Controller(this);
 		
+		// tabbedPane as basic pane for navigating between menus
+		tabbedContentPane = new JTabbedPane();
+		tabbedContentPane.setBackground(Color.LIGHT_GRAY);
+		setContentPane(tabbedContentPane);
+		
+		// creating container hierarchy for menus
+		connectionMenu = new connectionMenu(controller);
+		cmdMenu = new cmdMenu(controller);
+		
+		// adding menus to tabbedPane
+		tabbedContentPane.add("connections",connectionMenu.getConnectPane());
+		tabbedContentPane.add("commands",cmdMenu.getCmdPane());
 
-		contentPane = new JPanel();
-		contentPane.setBackground(Color.LIGHT_GRAY);
-		setContentPane(contentPane);
-		contentPane.setLayout(null);
-		
-		// Knopf zum Öffnen des Verbindungsmenüs
-		btnConnect = new JButton("Verbinden");
-		btnConnect.setBounds(210, 11, 170, 70);
-		contentPane.add(btnConnect);
-		// Knopf zum Öffnen des Kommandomenüs
-		btnCmd = new JButton("Direkte Kommandos");
-		btnCmd.setBounds(390, 11, 170, 70);
-		contentPane.add(btnCmd);
-		
-		//containerpanel für cmd und connect layout
-		layeredPane = new JLayeredPane();
-		layeredPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-		layeredPane.setBounds(0, 150, 784, 410);
-		layeredPane.setLayout(new CardLayout(0, 0));
-		
-		connectPane = new ConnectPane(controller);
-		layeredPane.add(connectPane, "name_266637540072800");
-		connectPane.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
-		connectPane.setLayout(null);
-		
-		cmdPane = new CmdPane(controller);
-		layeredPane.add(cmdPane, "name_266637553746400");
-		cmdPane.setLayout(null);
-		
-		contentPane.add(layeredPane);
 		revalidate();
-		
-		//Listener initialisieren
-		controller.initialListeners();
 	}
 }

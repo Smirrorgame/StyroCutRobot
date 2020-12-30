@@ -9,36 +9,26 @@ public class Controller {
 	
 	private MainFrame frame;
 	
-	private TCPClient client;
+	/**
+	 * client communicating with cutter-robot
+	 */
+	private TCPClient clientR1;
+	
+	/**
+	 * client communicating with holder-robot
+	 */
+	private TCPClient clientR2;
+	
+	/**
+	 * client communicating with tracking-system
+	 */
+	private TCPClient clientTS;
+	
+	
 	
 	public Controller(MainFrame frame) {
 		this.frame = frame;
 		
-	}
-	
-	/**
-	 * Setup of initial Action Listeners
-	 */
-	protected void initialListeners() {
-		frame.btnConnect.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				frame.cmdPane.setVisible(false);
-				frame.connectPane.setVisible(true);
-				frame.revalidate();			
-			}
-		});
-		
-		frame.btnCmd.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				frame.connectPane.setVisible(false);
-				frame.cmdPane.setVisible(true);
-				frame.revalidate();			
-			}
-		});
 	}
 	
 	/**
@@ -61,26 +51,72 @@ public class Controller {
 	}
 
 	/**
-	 * send command to Robot
-	 * @param command the command
+	 * send command to cutter-robot
+	 * @param command
 	 */
-	protected boolean send(String command) {
-		if(client!=null) {
-			client.sendData(command);
+	protected boolean sendR1(String command) {
+		if(clientR1!=null) {
+			clientR1.sendData(command);
 			return true;
 		}
 		return false;
 	}
 	
 	/**
-	 * receive Message from Roboter
+	 * send command to holder-robot
+	 * @param command
+	 */
+	protected boolean sendR2(String command) {
+		if(clientR2!=null) {
+			clientR2.sendData(command);
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * send command to tracking-system
+	 * @param command
+	 */
+	protected boolean sendTS(String command) {
+		if(clientTS!=null) {
+			clientTS.sendData(command);
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * receive Message from cutter-robot
 	 * @return the received message
 	 */
-	protected String response() {
-		if(client!=null) {
-			return client.receiveData();
+	protected String responseR1() {
+		if(clientR1!=null) {
+			return clientR1.receiveData();
 		}
-		return "ERROR, not Connected!";
+		return "ERROR, not connected to cutter-robot!";
+	}
+	
+	/**
+	 * receive Message from holder-robot
+	 * @return the received message
+	 */
+	protected String responseR2() {
+		if(clientR2!=null) {
+			return clientR2.receiveData();
+		}
+		return "ERROR, not connected to holder-robot!";
+	}
+	
+	/**
+	 * receive Message from tracking-system
+	 * @return the received message
+	 */
+	protected String responseTS() {
+		if(clientTS!=null) {
+			return clientTS.receiveData();
+		}
+		return "ERROR, not connected to tracking-system!";
 	}
 
 }
