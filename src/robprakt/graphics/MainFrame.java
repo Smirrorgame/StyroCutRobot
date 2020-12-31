@@ -6,6 +6,7 @@ import java.awt.Toolkit;
 import javax.swing.JFrame;
 import javax.swing.JTabbedPane;
 
+import robCalibration.QR24;
 import robprakt.Constants;
 
 public class MainFrame extends JFrame {
@@ -61,5 +62,6 @@ public class MainFrame extends JFrame {
 		tabbedContentPane.add("commands",cmdMenu);
 		
 		revalidate();
+		
 	}
 }

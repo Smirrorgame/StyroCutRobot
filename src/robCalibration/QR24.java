@@ -4,8 +4,15 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
+import org.apache.commons.math3.linear.ArrayRealVector;
+import org.apache.commons.math3.linear.DecompositionSolver;
+import org.apache.commons.math3.linear.LUDecomposition;
+import org.apache.commons.math3.linear.MatrixUtils;
+import org.apache.commons.math3.linear.QRDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
+import org.apache.commons.math3.linear.RealVector;
 import robprakt.Constants;
+import robprakt.graphics.Controller;
 
 
 /**
@@ -23,8 +30,8 @@ import robprakt.Constants;
  * ===
  * 
  * Fragen:
- * Kann man die selbst spezifizierten Matrizen für die Pose des Roboters für die Berechnung verwenden,
- * oder sollte man die Position vom Roboter nochmals abfragen? --> Möglicherweise ist die Matrix des Roboters
+ * Kann man die selbst spezifizierten Matrizen fÃ¼r die Pose des Roboters fÃ¼r die Berechnung verwenden,
+ * oder sollte man die Position vom Roboter nochmals abfragen? --> MÃ¶glicherweise ist die Matrix des Roboters
  * leicht anders als die, die man anfahren wollte. (praktisch ausprobieren)
  * 
  */
@@ -60,7 +67,15 @@ public class QR24 {
 	 * Index i refers to the i-1 measurement.
 	 */
 	protected ArrayList<RealMatrix> measuredPosesOfMarker = new ArrayList<RealMatrix>();
+
+	/**
+	 * Der Controller zum Senden von Nachrichten an die Server
+	 */
+	private Controller controller;
 	
+	public QR24 (Controller c){
+		this.controller = c;
+	}
 	
 	/**
 	 * Creates random homogeneous robot pose matrices for a spherical limited workspace.
@@ -80,7 +95,7 @@ public class QR24 {
 		double alpha_x;	//angle for rotation around x-axis
 		double beta_y;	//angle for rotation around y-axis
 		double gamma_z;	//angle for rotation around z-axis
-		double phase = Math.PI*(21/45);	//phase of 84°, in radians
+		double phase = Math.PI*(21/45);	//phase of 84Â°, in radians
 		for(int cnt = 1; cnt <= numberOfMeasurements; cnt++) {
 		
 			//ROTATIONAL PART
@@ -117,10 +132,10 @@ public class QR24 {
 		}
 	}
 	
-	
-
 	private RealMatrix measuring() {
 		RealMatrix robPoseMatrix;
+
+/*
 		for(int cnt = 0; cnt < numberOfMeasurements; cnt++) {
 			robPoseMatrix = poseMatrices.get(cnt);
 			//TODO: replace sendToRobot with correct method to send commands to the robot
@@ -136,7 +151,165 @@ public class QR24 {
 			//TODO: extract values from the tracking system response and add them to the list
 			sendToTrackingSystem("CM_NEXTVALUE")
 		}
+		*/
+		return null;
+	}
+	
+	public void start() {
+		
+		double degrees = Math.toRadians(45);
+
+		double[][] m = {
+				{Math.cos(degrees), -Math.sin(degrees), 0d, 0d},
+				{Math.sin(degrees), Math.cos(degrees), 0d, 50d},
+//				{0, -1, 0, 0},
+//				{1, 0, 0, 50},
+				{0d, 0d, 1d, 0d},
+				{0d, 0d, 0d, 1d}};
+		
+		double[][] x = {
+				{1d, 0d, 0d, 200d},
+				{0d, 1d, 0d, -50d},
+				{0d, 0d, 1d, 100d},
+				{0d, 0d, 0d, 1d}};
+		
+		double degrees2 = Math.toRadians(45);
+		
+		double[][] y = {
+				{Math.cos(degrees2), -Math.sin(degrees2), 0d, 20d},
+				{Math.sin(degrees2), Math.cos(degrees2), 0d, 0d},
+				{0d, 0d, 1d, 10d},
+				{0d, 0d, 0d, 1d}};
+		
+		double[][] n = {
+				{1d, 0d, 0d, 180d},
+				{0d, 1d, 0d, 0d},
+				{0d, 0d, 1d, 90d},
+				{0d, 0d, 0d, 1d}};
+		
+		RealMatrix M = new Array2DRowRealMatrix(m);
+		RealMatrix X = new Array2DRowRealMatrix(x);
+		RealMatrix Y = new Array2DRowRealMatrix(y);
+		RealMatrix N = new Array2DRowRealMatrix(n);
+		
+		
+		int measures = 1; 
+		RealMatrix A = new Array2DRowRealMatrix(12*measures, 24*measures);
+		
+		// A Matrix Aufbauen
+		A.setSubMatrix(createAEntry(M, N).getData(), 0, 0);
+		RealVector B = new ArrayRealVector(12*measures);
+		B.setSubVector(0, createBEntry(M));
+		
+		System.out.println("M_invers");print(new LUDecomposition(M).getSolver().getInverse());
+		System.out.println("M = ");print(M);
+		System.out.println("X = ");print(X);
+		System.out.println("Y = ");print(Y);
+		System.out.println("N = ");print(N);
+		System.out.println("A = ");print(A);
+		System.out.println("B = ");System.out.println(B);
+		System.out.println();
+		
+		System.out.println("MX=YN:");
+		print(M.multiply(X));
+		print(Y.multiply(N));
+		
+		DecompositionSolver solver = new QRDecomposition(A).getSolver();
+		RealVector Elements = solver.solve(B);
+		System.out.println("Elements:");
+		System.out.println(Elements);
+		
+		RealVector xVals = Elements.getSubVector(0, 12);
+		RealVector yVals = Elements.getSubVector(12, 12);
+		
+		System.out.println(xVals);
+		System.out.println(yVals);
+		
+	}
+	
+	private RealMatrix createAEntry(RealMatrix m,RealMatrix n) {
+		
+		RealMatrix RM = getRot(m);
+		
+		RM = new LUDecomposition(RM).getSolver().getInverse();
+		RealMatrix N = n.copy();
+		RealMatrix Ai = new Array2DRowRealMatrix(12,24);
+		RealMatrix Z = new Array2DRowRealMatrix(3,3);
+		RealMatrix Identity12 = MatrixUtils.createRealIdentityMatrix(12);
+		
+		// erste Spalte
+		Ai.setSubMatrix(RM.scalarMultiply(N.getEntry(0, 0)).getData(), 0, 0);
+		Ai.setSubMatrix(RM.scalarMultiply(N.getEntry(0, 1)).getData(), 3, 0);
+		Ai.setSubMatrix(RM.scalarMultiply(N.getEntry(0, 2)).getData(), 6, 0);
+		Ai.setSubMatrix(RM.scalarMultiply(N.getEntry(0, 3)).getData(), 9, 0);
+		                                                   
+		//zweite Spalte
+		Ai.setSubMatrix(RM.scalarMultiply(N.getEntry(1, 0)).getData(), 0, 3);
+		Ai.setSubMatrix(RM.scalarMultiply(N.getEntry(1, 1)).getData(), 3, 3);
+		Ai.setSubMatrix(RM.scalarMultiply(N.getEntry(1, 2)).getData(), 6, 3);
+		Ai.setSubMatrix(RM.scalarMultiply(N.getEntry(1, 3)).getData(), 9, 3);
+
+		//dritte spalte
+		Ai.setSubMatrix(RM.scalarMultiply(N.getEntry(2, 0)).getData(), 0, 6);
+		Ai.setSubMatrix(RM.scalarMultiply(N.getEntry(2, 1)).getData(), 3, 6);
+		Ai.setSubMatrix(RM.scalarMultiply(N.getEntry(2, 2)).getData(), 6, 6);
+		Ai.setSubMatrix(RM.scalarMultiply(N.getEntry(2, 3)).getData(), 9, 6);
+		
+		//vierte Spalte
+		Ai.setSubMatrix(Z.getData(), 0, 9);
+		Ai.setSubMatrix(Z.getData(), 3, 9);
+		Ai.setSubMatrix(Z.getData(), 6, 9);
+		Ai.setSubMatrix(RM.getData(), 9, 9);
+		
+		//fÃ¼nfte Spalte
+		Ai.setSubMatrix(Identity12.scalarMultiply(-1d).getData(), 0, 12);
+		return Ai;
+	}
+	
+	private RealVector createBEntry(RealMatrix m) {
+		RealMatrix bi = new Array2DRowRealMatrix(1,12);
+		
+		RealMatrix negT_M = getTrans(new LUDecomposition(m).getSolver().getInverse()).scalarMultiply(-1d).transpose();
+		bi.setSubMatrix(negT_M.getData(), 0, 9);
+		
+		return bi.getRowVector(0);
+	}
+	
+	private RealMatrix getRot(RealMatrix mat) {
+		return mat.copy().getSubMatrix(
+				new int[] {0,1,2}, new int[] {0,1,2});
+	}
+	
+	private RealMatrix getTrans(RealMatrix mat) {
+		return mat.copy().getSubMatrix(new int[] {0,1,2}, new int[] {3});
 	}
 
+	public void print(RealMatrix m) {
+		
+		double[][] arr = m.getData();
+		
+		for (int row = 0; row < arr.length; row++)//Cycles through rows
+		{
+		  for (int col = 0; col < arr[row].length; col++)//Cycles through columns
+		  {
+		    System.out.print(arr[row][col]+" "); //change the %5d to however much space you want
+		  }
+		  System.out.println(); //Makes a new row
+		}
+		System.out.println();
+		//This allows you to print the array as matrix
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 }
