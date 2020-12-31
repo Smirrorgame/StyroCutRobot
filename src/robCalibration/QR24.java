@@ -3,6 +3,8 @@ import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.math3.linear.Array2DRowRealMatrix;
+import org.apache.commons.math3.linear.RealMatrix;
 import org.ejml.data.DMatrix4x4;
 import org.ejml.data.DMatrixRBlock;
 import org.ejml.data.DMatrixRMaj;
@@ -58,26 +60,13 @@ public class QR24 {
 	 * List of specified robot pose matrices.
 	 * Index i refers to the i-1 measurement.
 	 */
-	protected ArrayList<DMatrix4x4> poseMatrices = new ArrayList<DMatrix4x4>();
+	protected ArrayList<RealMatrix> poseMatrices = new ArrayList<RealMatrix>();
 	
 	/**
 	 * List of measured pose-matrices of the marker.
 	 * Index i refers to the i-1 measurement.
 	 */
-	protected ArrayList<DMatrix4x4> measuredPosesOfMarker = new ArrayList<DMatrix4x4>();
-	
-	
-	public static void main(String[] args) {
-		
-		Random random = new Random();
-		double dR = random.nextDouble();
-		System.out.println(random.nextDouble());
-		dR = random.nextDouble();
-		System.out.println(random.nextDouble());
-		DMatrix4x4 m = new DMatrix4x4(1,2,3,4,1,2,3,4,1,2,3,1,2,3,4, 0);
-//		DMatrix k = new DMatrix4x4();
-		m.print();
-	}
+	protected ArrayList<RealMatrix> measuredPosesOfMarker = new ArrayList<RealMatrix>();
 	
 	/**
 	 * Creates random homogeneous robot pose matrices for a spherical limited workspace.
@@ -91,7 +80,7 @@ public class QR24 {
 	 * 									part is used to define orientation of the marker.
 	 */
 	//TODO: using SET-UP configuration to manually configure basicOrientationOfMarker regarding the orientation of tracking system and marker
-	private void createRobotPoseHomMatrices(DMatrix4x4 basicOrientationOfMarker) {
+	private void createRobotPoseHomMatrices(RealMatrix basicOrientationOfMarker) {
 		
 		Random random = new Random();
 		double alpha_x;	//angle for rotation around x-axis
@@ -117,20 +106,17 @@ public class QR24 {
 			double a33 = Math.cos(alpha_x)*Math.cos(beta_y);
 
 			//creating pose matrix
-			DMatrix4x4 robPoseMatrix = new DMatrix4x4(	a11, a12, a13, 0,
-	                									a21, a22, a23, 0,
-	                									a31, a32, a33, 0,
-	                									0,   0,   0,   1
-														);
+			double[][] robPoseMatrixData = {{a11,a12,a13,0},{a21,a22,a23,0},{a31,a32,a33,0},{0d,0d,0d,1d}};
+			RealMatrix robPoseMatrix = new Array2DRowRealMatrix (robPoseMatrixData);
 			//changing orientation regarding the basic orientation of the marker relative to the tracking sensor
 			//TODO: Validate if this is the correct oder of multiplication
-			CommonOps_DDF4.mult(robPoseMatrix, basicOrientationOfMarker, robPoseMatrix);
+			robPoseMatrix = robPoseMatrix.multiply(basicOrientationOfMarker);
 			
 			//TRANSLATIONAL PART
 			//generating random values inside a sphere defined by radiusWorkspace
-			robPoseMatrix.a14 = ((0.5-random.nextDouble())*2)*radiusWorkspace;
-			robPoseMatrix.a24 = ((0.5-random.nextDouble())*2)*radiusWorkspace;
-			robPoseMatrix.a34 = ((0.5-random.nextDouble())*2)*radiusWorkspace;
+			robPoseMatrix.setEntry(1, 4, ((0.5-random.nextDouble())*2)*radiusWorkspace);
+			robPoseMatrix.setEntry(2, 4, ((0.5-random.nextDouble())*2)*radiusWorkspace);
+			robPoseMatrix.setEntry(3, 4, ((0.5-random.nextDouble())*2)*radiusWorkspace);
 			
 			//add generated pose matrix to list
 			poseMatrices.add(robPoseMatrix);
@@ -138,15 +124,15 @@ public class QR24 {
 	}
 	
 	
-	private DMatrix4x4 measuring() {
-		DMatrix4x4 robPoseMatrix;
+	private RealMatrix measuring() {
+		RealMatrix robPoseMatrix;
 		
 		for(int cnt = 0; cnt < numberOfMeasurements; cnt++) {
 			robPoseMatrix = poseMatrices.get(cnt);
 			//TODO: replace sendToRobot with correct method to send commands to the robot
-			sendToRobot("MoveMinChangeRowWiseStatus" 	+ " " + robPoseMatrix.a11 + " " + robPoseMatrix.a12 + " " + robPoseMatrix.a13 + " " + robPoseMatrix.a14
-														+ " " + robPoseMatrix.a21 + " " + robPoseMatrix.a22 + " " + robPoseMatrix.a23 + " " + robPoseMatrix.a24
-														+ " " + robPoseMatrix.a31 + " " + robPoseMatrix.a32 + " " + robPoseMatrix.a33 + " " + robPoseMatrix.a34
+			sendToRobot("MoveMinChangeRowWiseStatus" 	+ " " + robPoseMatrix.getEntry(1,1) + " " + robPoseMatrix.getEntry(1, 2) + " " + robPoseMatrix.getEntry(1,3) + " " + robPoseMatrix.getEntry(1, 4)
+														+ " " + robPoseMatrix.getEntry(2,1) + " " + robPoseMatrix.getEntry(2, 2) + " " + robPoseMatrix.getEntry(2,3) + " " + robPoseMatrix.getEntry(2, 4)
+														+ " " + robPoseMatrix.getEntry(3,1) + " " + robPoseMatrix.getEntry(3, 2) + " " + robPoseMatrix.getEntry(3,3) + " " + robPoseMatrix.getEntry(3, 4)
 														+ " " + " righty");
 			//TODO: replace getRobSpeed with correct method to get the speed value of the robot (assuming value is given in percentage)
 			TimeUnit.MILLISECONDS.sleep(2*radiusWorkspace/(Constants.MAX_COMPOSITE_SPEED*getRobSpeed));
