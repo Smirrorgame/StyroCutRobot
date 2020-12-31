@@ -3,8 +3,11 @@ import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
+<<<<<<< HEAD
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
+=======
+>>>>>>> 1045c59188c23aa5d029e1c94a351f2dcf68c60a
 import org.ejml.data.DMatrix4x4;
 import org.ejml.data.DMatrixRBlock;
 import org.ejml.data.DMatrixRMaj;
@@ -61,12 +64,13 @@ public class QR24 {
 	 * Index i refers to the i-1 measurement.
 	 */
 	protected ArrayList<RealMatrix> poseMatrices = new ArrayList<RealMatrix>();
-	
+
 	/**
 	 * List of measured pose-matrices of the marker.
 	 * Index i refers to the i-1 measurement.
 	 */
 	protected ArrayList<RealMatrix> measuredPosesOfMarker = new ArrayList<RealMatrix>();
+
 	
 	/**
 	 * Creates random homogeneous robot pose matrices for a spherical limited workspace.
@@ -81,6 +85,7 @@ public class QR24 {
 	 */
 	//TODO: using SET-UP configuration to manually configure basicOrientationOfMarker regarding the orientation of tracking system and marker
 	private void createRobotPoseHomMatrices(RealMatrix basicOrientationOfMarker) {
+
 		
 		Random random = new Random();
 		double alpha_x;	//angle for rotation around x-axis
@@ -124,15 +129,17 @@ public class QR24 {
 	}
 	
 	
+
 	private RealMatrix measuring() {
 		RealMatrix robPoseMatrix;
-		
+
 		for(int cnt = 0; cnt < numberOfMeasurements; cnt++) {
 			robPoseMatrix = poseMatrices.get(cnt);
 			//TODO: replace sendToRobot with correct method to send commands to the robot
 			sendToRobot("MoveMinChangeRowWiseStatus" 	+ " " + robPoseMatrix.getEntry(1,1) + " " + robPoseMatrix.getEntry(1, 2) + " " + robPoseMatrix.getEntry(1,3) + " " + robPoseMatrix.getEntry(1, 4)
 														+ " " + robPoseMatrix.getEntry(2,1) + " " + robPoseMatrix.getEntry(2, 2) + " " + robPoseMatrix.getEntry(2,3) + " " + robPoseMatrix.getEntry(2, 4)
 														+ " " + robPoseMatrix.getEntry(3,1) + " " + robPoseMatrix.getEntry(3, 2) + " " + robPoseMatrix.getEntry(3,3) + " " + robPoseMatrix.getEntry(3, 4)
+
 														+ " " + " righty");
 			//TODO: replace getRobSpeed with correct method to get the speed value of the robot (assuming value is given in percentage)
 			TimeUnit.MILLISECONDS.sleep(2*radiusWorkspace/(Constants.MAX_COMPOSITE_SPEED*getRobSpeed));

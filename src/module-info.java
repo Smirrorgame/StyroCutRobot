@@ -3,4 +3,5 @@ module styrocutrobot {
 	requires ejml.core;
 	requires ejml.ddense;
 	requires commons.math3;
+
 }
