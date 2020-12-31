@@ -12,17 +12,17 @@ public class Controller {
 	/**
 	 * client communicating with cutter-robot
 	 */
-	private TCPClient clientR1;
+	private TCPClient clientR1 = new TCPClient();
 	
 	/**
 	 * client communicating with holder-robot
 	 */
-	private TCPClient clientR2;
+	private TCPClient clientR2 = new TCPClient();;
 	
 	/**
 	 * client communicating with tracking-system
 	 */
-	private TCPClient clientTS;
+	private TCPClient clientTS = new TCPClient();;
 	
 	
 	
@@ -36,7 +36,7 @@ public class Controller {
 	 * @return clientR1
 	 */
 	public TCPClient getClientR1() {
-		return clientR1;
+		return this.clientR1;
 	}
 	
 	/**
@@ -44,7 +44,7 @@ public class Controller {
 	 * @return clientR1
 	 */
 	public TCPClient getClientR2() {
-		return clientR2;
+		return this.clientR2;
 	}
 	
 	/**
@@ -52,7 +52,7 @@ public class Controller {
 	 * @return clientTS
 	 */
 	public TCPClient getClientTS() {
-		return clientTS;
+		return this.clientTS;
 	}
 	
 	/**
@@ -62,17 +62,10 @@ public class Controller {
 	 * @param client TCPClient that is initially null. 3 different clients for each server
 	 */
 	protected boolean connect(String ip, int port, TCPClient client) {
-		client = new TCPClient(ip, port);
+		client.setIP(ip);
+		client.setPort(port);
+		System.out.println(client.getIP() + clientTS.getIP());
 		return client.connect();
-	}
-	
-	/**
-	 * close the connection to the server
-	 */
-	protected void closeConnection() {
-		if(client!=null) {
-			client.closeConnection();
-		}
 	}
 
 	/**
@@ -82,6 +75,7 @@ public class Controller {
 	 */
 	protected boolean send(String command, TCPClient client) {
 		if(client!=null) {
+			if(client == clientTS) command = command + "\n"; //necessary for tracking system server communication
 			client.sendData(command);
 			return true;
 		}

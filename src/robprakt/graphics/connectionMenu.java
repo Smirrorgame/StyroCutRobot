@@ -171,12 +171,18 @@ public class connectionMenu extends JPanel {
 
 			@Override
 			public void focusGained(FocusEvent e) {
-				if(ipFieldR1.getText().equals("Enter IP-address for CUTTER-ROBOT")) ipFieldR1.setText("");
+				if(ipFieldR1.getText().equals("Enter IP-address for CUTTER-ROBOT")) {
+					ipFieldR1.setText("");
+					ipFieldR1.setForeground(Color.BLACK);
+				}
 			}
 
 			@Override
 			public void focusLost(FocusEvent e) {
-				if(ipFieldR1.getText().equals("")) ipFieldR1.setText("Enter IP-address for CUTTER-ROBOT");;
+				if(ipFieldR1.getText().equals("")) {
+					ipFieldR1.setText("Enter IP-address for CUTTER-ROBOT");
+					ipFieldR1.setForeground(Color.LIGHT_GRAY);
+				}
 			}
 		};
 		
@@ -185,12 +191,18 @@ public class connectionMenu extends JPanel {
 
 			@Override
 			public void focusGained(FocusEvent e) {
-				if(ipFieldR2.getText().equals("Enter IP-address for HOLDER-ROBOT")) ipFieldR2.setText("");
+				if(ipFieldR2.getText().equals("Enter IP-address for HOLDER-ROBOT")) {
+					ipFieldR2.setText("");
+					ipFieldR2.setForeground(Color.BLACK);
+				}
 			}
 
 			@Override
 			public void focusLost(FocusEvent e) {
-				if(ipFieldR2.getText().equals("")) ipFieldR2.setText("Enter IP-address for HOLDER-ROBOT");;
+				if(ipFieldR2.getText().equals("")) {
+					ipFieldR2.setText("Enter IP-address for HOLDER-ROBOT");
+					ipFieldR2.setForeground(Color.LIGHT_GRAY);
+				}
 			}
 		};
 		//tracking-system
@@ -198,12 +210,18 @@ public class connectionMenu extends JPanel {
 
 			@Override
 			public void focusGained(FocusEvent e) {
-				if(ipFieldTS.getText().equals("Enter IP-address for TRACKING-SYSTEM")) ipFieldTS.setText("");
+				if(ipFieldTS.getText().equals("Enter IP-address for TRACKING-SYSTEM")) {
+					ipFieldTS.setText("");
+					ipFieldTS.setForeground(Color.BLACK);
+				}
 			}
 
 			@Override
 			public void focusLost(FocusEvent e) {
-				if(ipFieldTS.getText().equals("")) ipFieldTS.setText("Enter IP-address for TRACKING-SYSTEM");;
+				if(ipFieldTS.getText().equals("")) {
+					ipFieldTS.setText("Enter IP-address for TRACKING-SYSTEM");
+					ipFieldTS.setForeground(Color.LIGHT_GRAY);
+				}
 			}
 		};
 		
@@ -223,10 +241,10 @@ public class connectionMenu extends JPanel {
 				int port = 5005;
 				if(controller.connect(ip,port, controller.getClientR1())) {
 					connectR1.setText("<html><center>connect to<br>CUTTER-ROBOT<br><b>STATUS:<br>CONNECTED</b></center></html>");
-					connectR1.setForeground(Color.GREEN);
+					connectR1.setBackground(Color.GREEN);
 				}else {
 					connectR1.setText("<html><center>connect to<br>CUTTER-ROBOT<br><b>STATUS:<br>FAILED</b></center></html>");
-					connectR1.setBackground(Color.RED);
+					connectR1.setBackground(Color.ORANGE);
 				}
 			}
 		};
@@ -237,12 +255,12 @@ public class connectionMenu extends JPanel {
 			public void actionPerformed(ActionEvent e) {
 				String ip = ipFieldR2.getText();
 				int port = 5005;
-				if(controller.connect(ip, port, controller.getClientR1())) {
+				if(controller.connect(ip, port, controller.getClientR2())) {
 					connectR2.setText("<html><center>connect to<br>HOLDER-ROBOT<br><b>STATUS:<br>CONNECTED</b></center></html>");
-					connectR2.setForeground(Color.GREEN);
+					connectR2.setBackground(Color.GREEN);
 				}else {
 					connectR2.setText("<html><center>connect to<br>HOLDER-ROBOT<br><b>STATUS:<br>FAILED</b></center></html>");
-					connectR2.setBackground(Color.RED);
+					connectR2.setBackground(Color.ORANGE);
 				}
 			}
 		};
@@ -252,13 +270,13 @@ public class connectionMenu extends JPanel {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String ip = ipFieldTS.getText();
-				int port = 5005;
+				int port = 5000;
 				if(controller.connect(ip, port, controller.getClientTS())) {
 					connectTS.setText("<html><center>connect to<br>TRACKING-SYSTEM<br><b>STATUS:<br>CONNECTED</b></center></html>");
-					connectTS.setForeground(Color.GREEN);
+					connectTS.setBackground(Color.GREEN);
 				}else {
 					connectTS.setText("<html><center>connect to<br>TRACKING-SYSTEM<br><b>STATUS:<br>FAILED</b></center></html>");
-					connectTS.setBackground(Color.RED);
+					connectTS.setBackground(Color.ORANGE);
 				}
 			}
 		};

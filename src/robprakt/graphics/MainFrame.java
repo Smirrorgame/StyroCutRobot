@@ -59,7 +59,7 @@ public class MainFrame extends JFrame {
 		// adding menus to tabbedPane
 		tabbedContentPane.add("connections",connectionMenu);
 		tabbedContentPane.add("commands",cmdMenu);
-		System.out.println("a");
+		
 		revalidate();
 	}
 }

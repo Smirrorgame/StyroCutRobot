@@ -30,6 +30,34 @@ public class TCPClient extends NetEntity {
 		this.port = port;
 	}
 	
+	public TCPClient() {
+	}
+
+	/**
+	 * Setter for IP
+	 * @param ip
+	 * @return 
+	 */
+	public void setIP(String ip) {
+		this.ip = ip;
+	}
+	
+	public String getIP() {
+		return ip;
+	}
+	public int getPort() {
+		return port;
+	}
+	
+	/**
+	 * Setter for Port
+	 * @param port
+	 * @return 
+	 */
+	public void setPort(int port) {
+		this.port = port;
+	}
+	
 	/**
 	 *
 	 * this method connects the client to a server

@@ -56,6 +56,7 @@ abstract class NetEntity {
 	
 	/**
 	 * this method is for sending data through the network
+	 * 
 	 * @param data the data to send
 	 */
 	public void sendData(String data) {
@@ -70,7 +71,7 @@ abstract class NetEntity {
 	 * @return the data which has been received
 	 */
 	public String receiveData() {
-		byte[] buffer = new byte[100];    //If you handle larger data use a bigger buffer size
+		byte[] buffer = new byte[500];    //If you handle larger data use a bigger buffer size
 		int read;
 		try {
 			if(in!=null) {
@@ -83,35 +84,6 @@ abstract class NetEntity {
 //			e.printStackTrace();
 //			System.exit(0);
 			return "You have been disconnected";
-		}
-		
-		return null;
-	}
-	
-	/**
-	 * the method is for receiving data through the network with a num of attempts
-	 * @param attempts the number of attempts before quit receiving
-	 * @return the data which has been received
-	 */
-	public String receiveData(int attempts) {
-		if(attempts<=0) return "Got No Data";
-		if(socket!=null) {
-			int inBytes;
-			String s = "";
-			try {
-				inBytes = socket.getInputStream().available();
-				if(inBytes > 0) {
-					byte[] buffer = new byte[inBytes];
-					socket.getInputStream().read(buffer);
-					s = new String(buffer);
-					inBytes = socket.getInputStream().available();
-				}else {
-					return receiveData(attempts-1);
-				}
-			} catch (IOException e) {
-				System.err.println("Something went wrong while receiving data!");
-			}
-			return s;
 		}
 		
 		return null;

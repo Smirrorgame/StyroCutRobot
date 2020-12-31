@@ -1,5 +1,6 @@
 package robprakt.graphics;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -148,16 +149,19 @@ public class cmdMenu extends JPanel{
 		cmdTxtR1 = new JTextField("command here - CUTTER-ROBOT");
 		cmdTxtR1.setPreferredSize(cmdTxtDim);
 		cmdTxtR1.setFont(new Font("Arial", Font.PLAIN, 12));
+		cmdTxtR1.setForeground(Color.LIGHT_GRAY);
 		cmdTxtR1.setToolTipText("enter command - CUTTER-ROBOT");
 		// holder-robot
 		cmdTxtR2 = new JTextField("command here - HOLDER-ROBOT");
 		cmdTxtR2.setPreferredSize(cmdTxtDim);
 		cmdTxtR2.setFont(new Font("Arial", Font.PLAIN, 12));
+		cmdTxtR2.setForeground(Color.LIGHT_GRAY);
 		cmdTxtR2.setToolTipText("enter command - HOLDER-ROBOT");
 		// tracking-system
 		cmdTxtTS = new JTextField("command here - TRACKING-SYSTEM");
 		cmdTxtTS.setPreferredSize(cmdTxtDim);
 		cmdTxtTS.setFont(new Font("Arial", Font.PLAIN, 12));
+		cmdTxtTS.setForeground(Color.LIGHT_GRAY);
 		cmdTxtTS.setToolTipText("enter command - TRACKING-SYSTEM");
 		
 		
@@ -216,25 +220,40 @@ public class cmdMenu extends JPanel{
 			@Override
 			public void focusGained(FocusEvent e) {
 				focusTxtR1 = true;
+				if(cmdTxtR1.getText().equals("command here - CUTTER-ROBOT")) {
+					cmdTxtR1.setText("");
+					cmdTxtR1.setForeground(Color.BLACK);
+				}
 			}
 
 			@Override
 			public void focusLost(FocusEvent e) {
 				focusTxtR1 = false;
+				if(cmdTxtR1.getText().equals("")) {
+					cmdTxtR1.setText("command here - CUTTER-ROBOT");
+					cmdTxtR1.setForeground(Color.LIGHT_GRAY);
+				}
 			}
 		};
-		
 		//holder-robot
 		FocusListener FocusListenerR2 = new FocusListener() {
 
 			@Override
 			public void focusGained(FocusEvent e) {
 				focusTxtR2 = true;
+				if(cmdTxtR2.getText().equals("command here - HOLDER-ROBOT")) {
+					cmdTxtR2.setText("");
+					cmdTxtR2.setForeground(Color.BLACK);
+				}
 			}
 
 			@Override
 			public void focusLost(FocusEvent e) {
 				focusTxtR2 = false;
+				if(cmdTxtR2.getText().equals("")) {
+					cmdTxtR2.setText("command here - HOLDER-ROBOT");
+					cmdTxtR2.setForeground(Color.LIGHT_GRAY);
+				}
 			}
 		};
 		//tracking-system
@@ -243,11 +262,19 @@ public class cmdMenu extends JPanel{
 			@Override
 			public void focusGained(FocusEvent e) {
 				focusTxtTS = true;
+				if(cmdTxtTS.getText().equals("command here - TRACKING-SYSTEM")) {
+					cmdTxtTS.setText("");
+					cmdTxtTS.setForeground(Color.BLACK);
+				}
 			}
 
 			@Override
 			public void focusLost(FocusEvent e) {
 				focusTxtTS = false;
+				if(cmdTxtTS.getText().equals("")) {
+					cmdTxtTS.setText("command here - TRACKING-SYSTEM");
+					cmdTxtTS.setForeground(Color.LIGHT_GRAY);
+				}
 			}
 		};
 		
@@ -350,6 +377,7 @@ public class cmdMenu extends JPanel{
 		if (serverType.equals("cutter-robot")) {
 			cmd = cmdTxtR1.getText();
 			client = this.controller.getClientR1();
+			System.out.println("TESTER");
 		} else if (serverType.equals("holder-robot")) {
 			cmd = cmdTxtR2.getText();
 			client = this.controller.getClientR2();
@@ -386,6 +414,10 @@ public class cmdMenu extends JPanel{
 		
 		//print response of the server
 		String response = controller.response(client);
+		if(cmd.equals("CM_QUITCONNECTION")) {
+			responseFieldTS.setText("Tracking server shutdown successful.");
+			return;
+		}
 		if(response.contains("disconnected")){
 			if (serverType.equals("cutter-robot")) {
 				responseFieldR1.setText("Connection has been closed!");	
