@@ -11,6 +11,7 @@ import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.QRDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
+
 import robprakt.Constants;
 import robprakt.graphics.Controller;
 
@@ -62,6 +63,7 @@ public class QR24 {
 	 * Index i refers to the i-1 measurement.
 	 */
 	protected ArrayList<RealMatrix> poseMatrices = new ArrayList<RealMatrix>();
+	
 	/**
 	 * List of measured pose-matrices of the marker.
 	 * Index i refers to the i-1 measurement.
@@ -139,10 +141,17 @@ public class QR24 {
 		for(int cnt = 0; cnt < numberOfMeasurements; cnt++) {
 			robPoseMatrix = poseMatrices.get(cnt);
 			//TODO: replace sendToRobot with correct method to send commands to the robot
+<<<<<<< HEAD
 
 			sendToRobot("MoveMinChangeRowWiseStatus" 	+ " " + robPoseMatrix.getEntry(1,1) + " " + robPoseMatrix.getEntry(1, 2) + " " + robPoseMatrix.getEntry(1,3) + " " + robPoseMatrix.getEntry(1, 4)
 														+ " " + robPoseMatrix.getEntry(2,1) + " " + robPoseMatrix.getEntry(2, 2) + " " + robPoseMatrix.getEntry(2,3) + " " + robPoseMatrix.getEntry(2, 4)
 														+ " " + robPoseMatrix.getEntry(3,1) + " " + robPoseMatrix.getEntry(3, 2) + " " + robPoseMatrix.getEntry(3,3) + " " + robPoseMatrix.getEntry(3, 4)
+=======
+			sendToRobot("MoveMinChangeRowWiseStatus" 	+ " " + robPoseMatrix.getEntry(1,1) + " " + robPoseMatrix.getEntry(1, 2) + " " + robPoseMatrix.getEntry(1,3) + " " + robPoseMatrix.getEntry(1, 4)
+														+ " " + robPoseMatrix.getEntry(2,1) + " " + robPoseMatrix.getEntry(2, 2) + " " + robPoseMatrix.getEntry(2,3) + " " + robPoseMatrix.getEntry(2, 4)
+														+ " " + robPoseMatrix.getEntry(3,1) + " " + robPoseMatrix.getEntry(3, 2) + " " + robPoseMatrix.getEntry(3,3) + " " + robPoseMatrix.getEntry(3, 4)
+
+>>>>>>> 89dde9b45d88af293546006ef03a2d477e49ba6d
 														+ " " + " righty");
 			//TODO: replace getRobSpeed with correct method to get the speed value of the robot (assuming value is given in percentage)
 			TimeUnit.MILLISECONDS.sleep(2*radiusWorkspace/(Constants.MAX_COMPOSITE_SPEED*getRobSpeed));
