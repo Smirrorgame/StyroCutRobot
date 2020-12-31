@@ -68,7 +68,8 @@ public class TCPClient extends NetEntity {
 			socket = new Socket(ip, port);
 		} catch (UnknownHostException e) {
 			System.err.println("Unknown Host");
-			e.printStackTrace();
+			return false;
+//			e.printStackTrace();
 		} catch (IOException e) {
 			System.err.println("Problems to connect, is the server started?");
 			return false;

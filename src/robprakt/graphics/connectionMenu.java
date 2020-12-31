@@ -105,16 +105,37 @@ public class connectionMenu extends JPanel {
 		//...connect-buttons
 		//...IP-fields
 		Dimension connectBtn = new Dimension(Constants.mainFrameWidth/5,Constants.mainFrameHeight/5);
-		GridBagConstraints connectGBS = new GridBagConstraints();
-		connectGBS.gridx = 1;
-		connectGBS.gridy = 0;
-		connectGBS.insets = new Insets(10,10,10,10);
-		connectGBS.anchor = GridBagConstraints.CENTER;
+		GridBagConstraints connectGBS1 = new GridBagConstraints();
+		GridBagConstraints connectGBS2 = new GridBagConstraints();
+		GridBagConstraints connectGBS3 = new GridBagConstraints();
+		connectGBS1.gridx = 1;
+		connectGBS1.gridy = 0;
+		connectGBS1.insets = new Insets(10,10,10,10);
+		connectGBS1.anchor = GridBagConstraints.CENTER;
+		
+		connectGBS2.gridx = 1;
+		connectGBS2.gridy = 0;
+		connectGBS2.insets = new Insets(10,10,10,10);
+		connectGBS2.anchor = GridBagConstraints.CENTER;
+		
+		connectGBS3.gridx = 1;
+		connectGBS3.gridy = 0;
+		connectGBS3.insets = new Insets(10,10,10,10);
+		connectGBS3.anchor = GridBagConstraints.CENTER;
+		
 		// for "send command" buttons
 		Dimension ipFieldsDim = new Dimension(Constants.mainFrameWidth*6/10,Constants.mainFrameHeight/20);
-		GridBagConstraints ipFieldsGBS = new GridBagConstraints();
-		ipFieldsGBS.gridx = 0;
-		ipFieldsGBS.gridy = 0;
+		GridBagConstraints ipFieldsGBS1 = new GridBagConstraints();
+		GridBagConstraints ipFieldsGBS2 = new GridBagConstraints();
+		GridBagConstraints ipFieldsGBS3 = new GridBagConstraints();
+		ipFieldsGBS1.gridx = 0;
+		ipFieldsGBS1.gridy = 0;
+		
+		ipFieldsGBS2.gridx = 0;
+		ipFieldsGBS2.gridy = 0;
+		
+		ipFieldsGBS3.gridx = 0;
+		ipFieldsGBS3.gridy = 0;
 		
 		//creating buttons (buttons are red, cause initially there's no connection)
 		//cutter-robot
@@ -154,13 +175,13 @@ public class connectionMenu extends JPanel {
 		
 		//adding components to rows
 		//buttons
-		row1.add(connectR1,connectGBS);
-		row2.add(connectR2,connectGBS);
-		row3.add(connectTS,connectGBS);
+		row1.add(connectR1,connectGBS1);
+		row2.add(connectR2,connectGBS2);
+		row3.add(connectTS,connectGBS3);
 		//text fields
-		row1.add(ipFieldR1,ipFieldsGBS);
-		row2.add(ipFieldR2,ipFieldsGBS);
-		row3.add(ipFieldTS,ipFieldsGBS);
+		row1.add(ipFieldR1,ipFieldsGBS1);
+		row2.add(ipFieldR2,ipFieldsGBS2);
+		row3.add(ipFieldTS,ipFieldsGBS3);
 
 		//#########################
 		//########LISTENERS########

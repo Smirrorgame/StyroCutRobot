@@ -1,8 +1,5 @@
 package robprakt.graphics;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
 import robprakt.network.TCPClient;
 
 public class Controller {
@@ -17,12 +14,12 @@ public class Controller {
 	/**
 	 * client communicating with holder-robot
 	 */
-	private TCPClient clientR2 = new TCPClient();;
+	private TCPClient clientR2 = new TCPClient();
 	
 	/**
 	 * client communicating with tracking-system
 	 */
-	private TCPClient clientTS = new TCPClient();;
+	private TCPClient clientTS = new TCPClient();
 	
 	
 	
@@ -64,7 +61,6 @@ public class Controller {
 	protected boolean connect(String ip, int port, TCPClient client) {
 		client.setIP(ip);
 		client.setPort(port);
-		System.out.println(client.getIP() + clientTS.getIP());
 		return client.connect();
 	}
 

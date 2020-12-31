@@ -61,6 +61,7 @@ abstract class NetEntity {
 	 */
 	public void sendData(String data) {
 		if(out!=null) {
+			// Man koennte auch  data+"\n" schreiben, wird aber momentan woanders abgefangen
 			out.write(data);
 			out.flush();
 		}
