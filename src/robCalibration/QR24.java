@@ -75,6 +75,10 @@ public class QR24 {
 	 */
 	private Controller controller;
 	
+	/**
+	 * The Constructor
+	 * @param c the controller for sending Messages to Robots and Tracking System 
+	 */
 	public QR24 (Controller c){
 		this.controller = c;
 	}
@@ -137,30 +141,26 @@ public class QR24 {
 	private RealMatrix measuring() {
 		RealMatrix robPoseMatrix;
 
-/*
+
 		for(int cnt = 0; cnt < numberOfMeasurements; cnt++) {
 			robPoseMatrix = poseMatrices.get(cnt);
 			//TODO: replace sendToRobot with correct method to send commands to the robot
-<<<<<<< HEAD
-
-			sendToRobot("MoveMinChangeRowWiseStatus" 	+ " " + robPoseMatrix.getEntry(1,1) + " " + robPoseMatrix.getEntry(1, 2) + " " + robPoseMatrix.getEntry(1,3) + " " + robPoseMatrix.getEntry(1, 4)
+			String data = "MoveMinChangeRowWiseStatus" 	+ " " + robPoseMatrix.getEntry(1,1) + " " + robPoseMatrix.getEntry(1, 2) + " " + robPoseMatrix.getEntry(1,3) + " " + robPoseMatrix.getEntry(1, 4)
 														+ " " + robPoseMatrix.getEntry(2,1) + " " + robPoseMatrix.getEntry(2, 2) + " " + robPoseMatrix.getEntry(2,3) + " " + robPoseMatrix.getEntry(2, 4)
 														+ " " + robPoseMatrix.getEntry(3,1) + " " + robPoseMatrix.getEntry(3, 2) + " " + robPoseMatrix.getEntry(3,3) + " " + robPoseMatrix.getEntry(3, 4)
-=======
-			sendToRobot("MoveMinChangeRowWiseStatus" 	+ " " + robPoseMatrix.getEntry(1,1) + " " + robPoseMatrix.getEntry(1, 2) + " " + robPoseMatrix.getEntry(1,3) + " " + robPoseMatrix.getEntry(1, 4)
-														+ " " + robPoseMatrix.getEntry(2,1) + " " + robPoseMatrix.getEntry(2, 2) + " " + robPoseMatrix.getEntry(2,3) + " " + robPoseMatrix.getEntry(2, 4)
-														+ " " + robPoseMatrix.getEntry(3,1) + " " + robPoseMatrix.getEntry(3, 2) + " " + robPoseMatrix.getEntry(3,3) + " " + robPoseMatrix.getEntry(3, 4)
-
->>>>>>> 89dde9b45d88af293546006ef03a2d477e49ba6d
-														+ " " + " righty");
+														+ " " + " righty";
+			//TODO: write a sendToRobot Method or use the controllers send Method directly
+//			sendToRobot(data);
 			//TODO: replace getRobSpeed with correct method to get the speed value of the robot (assuming value is given in percentage)
-			TimeUnit.MILLISECONDS.sleep(2*radiusWorkspace/(Constants.MAX_COMPOSITE_SPEED*getRobSpeed));
+			//Can also be a Constant in Constants.java
+//			TimeUnit.MILLISECONDS.sleep(2*radiusWorkspace/(Constants.MAX_COMPOSITE_SPEED*getRobSpeed));
 			
 			//TODO: create initial setup with robot, so it only sends MATRIXROWWISE data
 			//TODO: extract values from the tracking system response and add them to the list
-			sendToTrackingSystem("CM_NEXTVALUE")
+			//TODO: create sendToTrackingSystem Method or use the controllers send method directly
+//			sendToTrackingSystem("CM_NEXTVALUE");
 		}
-		*/
+		//TODO: return something useful...
 		return null;
 	}
 	
