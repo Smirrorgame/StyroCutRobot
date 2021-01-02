@@ -14,6 +14,7 @@ import org.apache.commons.math3.linear.RealVector;
 
 import robprakt.Constants;
 import robprakt.graphics.Controller;
+import robprakt.network.TCPClient;
 
 
 /**
@@ -38,12 +39,19 @@ import robprakt.graphics.Controller;
  */
 public class QR24 {
 	
+	/**
+	 * GUI Controller used to send data to servers
+	 */
+	private Controller controller;
+	
 	//TODO: Setting number of measurements in GUI (has to be greater than 1). if so: change private to protected
 	/**
 	 * Number of measurements.
 	 * Has to be greater than 1.
 	 */
-	private int numberOfMeasurements = 50;
+	private int numberOfMeasurements = Constants.DEFAULT_NUM_MEASUREMENTS;
+	
+	private double[][] initialMarkerPose = {{1,0,0,1000},{0,1,0,1250},{0,0,1,1300},{0,0,0,1}}; //TODO: set more useful initial value 
 	
 	//TODO: Setting localWorkspaceMidpoint dynamically e.g. in GUI
 	/**
@@ -69,11 +77,6 @@ public class QR24 {
 	 * Index i refers to the i-1 measurement.
 	 */
 	protected ArrayList<RealMatrix> measuredPosesOfMarker = new ArrayList<RealMatrix>();
-
-	/**
-	 * Der Controller zum Senden von Nachrichten an die Server
-	 */
-	private Controller controller;
 	
 	/**
 	 * The Constructor
@@ -81,6 +84,52 @@ public class QR24 {
 	 */
 	public QR24 (Controller c){
 		this.controller = c;
+	}
+	
+	/**
+	 * Setter for NumberOfMeasurments
+	 * @param num count of measurements
+	 * @return true if num greater than 1 and smaller than 501
+	 */
+	public boolean setNumberOfMeasurements(int num) {
+		if(1<num && 501>num) {
+			this.numberOfMeasurements = num;
+			return true;
+		}
+		System.out.println("Number of measurements have to be greater than one and smaller than 501./nMaybe the initialization in [calibrationMenu] of num broke.");
+		return false;
+	}
+	
+	/**
+	 * Setter for InitialMarkerPose
+	 * @param matrix3x4 is a matrix send by tracking-system
+	 */
+	public void setInitialMarkerPose(double[] matrix3x4){
+		ArrayList<Double> doubleList = new ArrayList<Double>(matrix3x4.length);
+		for (double i : matrix3x4)
+		{
+		    doubleList.add(i);
+		}
+		if(matrix3x4.length != 12) System.out.println("[QR24] Setting localWorkspaceMidpoint wasn't successful, cause matrix is corrupted.");
+		doubleList.add(0.0);
+		doubleList.add(0.0);
+		doubleList.add(0.0);
+		doubleList.add(1.0);
+		System.out.println(doubleList);
+		for(int row = 0; row < 3; row++) {
+			for(int col = 0; col < 4; col++) {
+				System.out.println("test: " + row + col);
+				
+				this.initialMarkerPose[row][col] = doubleList.get(3*row+col);
+			}
+		}
+	}
+	
+	public void setLocalWorkspaceMidpoint(double[] matrix3x4) {
+		if(matrix3x4.length != 12) System.out.println("[QR24] Setting localWorkspaceMidpoint wasn't successful, cause matrix is corrupted.");
+		this.localWorkspaceMidpoint[0] = matrix3x4[3];
+		this.localWorkspaceMidpoint[1] = matrix3x4[4+3];
+		this.localWorkspaceMidpoint[2] = matrix3x4[4+4+3];
 	}
 	
 	/**
@@ -124,44 +173,58 @@ public class QR24 {
 			double[][] robPoseMatrixData = {{a11,a12,a13,0},{a21,a22,a23,0},{a31,a32,a33,0},{0d,0d,0d,1d}};
 			RealMatrix robPoseMatrix = new Array2DRowRealMatrix (robPoseMatrixData);
 			//changing orientation regarding the basic orientation of the marker relative to the tracking sensor
-			//TODO: Validate if this is the correct oder of multiplication
+			//TODO: Validate if this is the correct order of multiplication
 			robPoseMatrix = robPoseMatrix.multiply(basicOrientationOfMarker);
 			
 			//TRANSLATIONAL PART
 			//generating random values inside a sphere defined by radiusWorkspace
-			robPoseMatrix.setEntry(1, 4, ((0.5-random.nextDouble())*2)*radiusWorkspace);
-			robPoseMatrix.setEntry(2, 4, ((0.5-random.nextDouble())*2)*radiusWorkspace);
-			robPoseMatrix.setEntry(3, 4, ((0.5-random.nextDouble())*2)*radiusWorkspace);
+			robPoseMatrix.setEntry(0, 3, ((0.5-random.nextDouble())*2)*radiusWorkspace);
+			robPoseMatrix.setEntry(1, 3, ((0.5-random.nextDouble())*2)*radiusWorkspace);
+			robPoseMatrix.setEntry(2, 3, ((0.5-random.nextDouble())*2)*radiusWorkspace);
 			
 			//add generated pose matrix to list
 			poseMatrices.add(robPoseMatrix);
 		}
 	}
 	
-	private RealMatrix measuring() {
+	public boolean measuring(TCPClient clientRob) throws InterruptedException {
 		RealMatrix robPoseMatrix;
-
-
+		
+		//create random pose matrices
+		createRobotPoseHomMatrices(new Array2DRowRealMatrix(initialMarkerPose));
+		
+		//get TCP-client for the tracking-system
+		TCPClient clientTS = controller.getClientTS();
 		for(int cnt = 0; cnt < numberOfMeasurements; cnt++) {
 			robPoseMatrix = poseMatrices.get(cnt);
-			//TODO: replace sendToRobot with correct method to send commands to the robot
-			String data = "MoveMinChangeRowWiseStatus" 	+ " " + robPoseMatrix.getEntry(1,1) + " " + robPoseMatrix.getEntry(1, 2) + " " + robPoseMatrix.getEntry(1,3) + " " + robPoseMatrix.getEntry(1, 4)
-														+ " " + robPoseMatrix.getEntry(2,1) + " " + robPoseMatrix.getEntry(2, 2) + " " + robPoseMatrix.getEntry(2,3) + " " + robPoseMatrix.getEntry(2, 4)
-														+ " " + robPoseMatrix.getEntry(3,1) + " " + robPoseMatrix.getEntry(3, 2) + " " + robPoseMatrix.getEntry(3,3) + " " + robPoseMatrix.getEntry(3, 4)
-														+ " " + " righty";
-			//TODO: write a sendToRobot Method or use the controllers send Method directly
-//			sendToRobot(data);
-			//TODO: replace getRobSpeed with correct method to get the speed value of the robot (assuming value is given in percentage)
-			//Can also be a Constant in Constants.java
-//			TimeUnit.MILLISECONDS.sleep(2*radiusWorkspace/(Constants.MAX_COMPOSITE_SPEED*getRobSpeed));
+			
+			String data = "MoveMinChangeRowWiseStatus" 	+ " " + robPoseMatrix.getEntry(0,0) + " " + robPoseMatrix.getEntry(0, 1) + " " + robPoseMatrix.getEntry(0,2) + " " + robPoseMatrix.getEntry(0, 3)
+														+ " " + robPoseMatrix.getEntry(1,0) + " " + robPoseMatrix.getEntry(1, 1) + " " + robPoseMatrix.getEntry(1,2) + " " + robPoseMatrix.getEntry(1, 3)
+														+ " " + robPoseMatrix.getEntry(2,0) + " " + robPoseMatrix.getEntry(2, 1) + " " + robPoseMatrix.getEntry(2,2) + " " + robPoseMatrix.getEntry(2, 3)
+														+ " " + " righty"; //TODO: Is "righty correct?"
+			//send command to robot
+			controller.send(data, clientRob);
+			//wait a certain amount of time, till robot reaches pose
+			try {
+				TimeUnit.MILLISECONDS.sleep((long) (2*radiusWorkspace/(Constants.MAX_COMPOSITE_SPEED*Constants.MAX_ALLOWED_SPEED_RATIO)));
+			} catch (InterruptedException e) {
+				System.out.println("[QR24] While waiting for the robot to reach pose, the thread has been interrupted.");
+			}
 			
 			//TODO: create initial setup with robot, so it only sends MATRIXROWWISE data
 			//TODO: extract values from the tracking system response and add them to the list
 			//TODO: create sendToTrackingSystem Method or use the controllers send method directly
-//			sendToTrackingSystem("CM_NEXTVALUE");
-		}
+			controller.send("CM_NEXTVALUE",clientTS);
+			double[] trackingData = Constants.convertPoseDataToDoubleArray(controller.response(clientTS));
+			
+			//create RealMatrix out off the data that was send by tracking-system
+			double[][] trackingData2DArray = {{trackingData[0],trackingData[1],trackingData[2],trackingData[3]},{trackingData[4],trackingData[5],trackingData[6],trackingData[7]},{trackingData[8],trackingData[9],trackingData[10],trackingData[11]},{0,0,0,1}};
+			RealMatrix m = new Array2DRowRealMatrix (trackingData2DArray);
+			//adding measured matrix to list
+			this.measuredPosesOfMarker.add(m);
+		}	
 		//TODO: return something useful...
-		return null;
+		return true;
 	}
 	
 	public void start() {

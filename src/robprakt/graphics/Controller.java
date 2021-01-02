@@ -21,11 +21,8 @@ public class Controller {
 	 */
 	private TCPClient clientTS = new TCPClient();
 	
-	
-	
 	public Controller(MainFrame frame) {
-		this.frame = frame;
-		
+		this.frame = frame;	
 	}
 	
 	/**
@@ -69,7 +66,7 @@ public class Controller {
 	 * @param command to send to server
 	 * @param client TCPClient that is needed for Server
 	 */
-	protected boolean send(String command, TCPClient client) {
+	public boolean send(String command, TCPClient client) {
 		if(client!=null) {
 			if(client == clientTS) command = command + "\n"; //necessary for tracking system server communication
 			client.sendData(command);
@@ -83,7 +80,7 @@ public class Controller {
 	 * @param client contains the client that communicates with the server
 	 * @return the received message
 	 */
-	protected String response(TCPClient client) {
+	public String response(TCPClient client) {
 		if(client!=null) {
 			return client.receiveData();
 		}

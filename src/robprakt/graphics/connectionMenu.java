@@ -307,4 +307,15 @@ public class connectionMenu extends JPanel {
 		connectR2.addActionListener(actionListenerbtnR2);
 		connectTS.addActionListener(actionListenerbtnTS);
 	}
+	
+	protected JButton getConnectionButton(String serverType) {
+		if(serverType.equals("R1")){
+			return connectR1;
+		} else if(serverType.equals("R2")) {
+			return connectR2;
+		} else if(serverType.equals("TS")) {
+			return connectTS;
+		}
+		throw new IllegalArgumentException("[connectionMenu] String for the server type is not valid.");
+	}
 }
