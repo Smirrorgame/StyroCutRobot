@@ -422,6 +422,9 @@ public class cmdMenu extends JPanel{
 		String response = controller.response(client);
 		if(cmd.equals("CM_QUITCONNECTION")) {
 			responseFieldTS.setText("Tracking server shutdown successful.");
+			JButton btn = mainFrame.getConnectionMenu().getConnectionButton("TS");
+			btn.setText("<html><center>connect to<br>TRACKING<br><b>STATUS:<br>CLOSED</b></center></html>");
+			btn.setBackground(Color.RED);
 			return;
 		} else if(cmd.equals("Quit") && serverType.equals("cutter-robot")) {
 			responseFieldR1.setText("Connection to CUTTER-ROBOT has been closed successfully.");

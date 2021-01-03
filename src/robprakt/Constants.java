@@ -33,6 +33,8 @@ public class Constants {
 		try
 	    {
 			for(int counter = 0; counter < dataStringArray.length; counter++) {
+				//TODO: REMOVE PRINT
+				System.out.println("String to be converted: " + dataStringArray[counter] + "test");
 				dataDoubleArray[counter] = Double.parseDouble(dataStringArray[counter]);
 			}
 	    }
