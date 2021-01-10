@@ -13,6 +13,7 @@ import org.apache.commons.math3.linear.QRDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealMatrixFormat;
 import org.apache.commons.math3.linear.RealVector;
+import org.apache.commons.math3.linear.SingularValueDecomposition;
 import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
 
 import robprakt.Constants;
@@ -235,86 +236,42 @@ public class QR24 {
 		return true;
 	}
 	
+	/**
+	 * Main method to test the QR24-Algorithm. Currently not working because
+	 * Test-data must be measured by an actual robot and tracking-system 
+	 * @param args the program launch parameters -> not used here 
+	 */
 	public static void main(String[] args) {
-		double[][] doubleValues = {{1.89723489312,2,3,4},{5,6,7,8},{9,10,11,12},{13,14,15,16}};
-		RealMatrix matrix = new Array2DRowRealMatrix(doubleValues);
 		QR24 qr24 = new QR24(new Controller(null));
 		
-		ArrayList<ArrayList<RealMatrix>> measurements = new testDataGenerator().generateTestData(400);
+		ArrayList<ArrayList<RealMatrix>> measurements = 
+				new testDataGenerator().generateTestData(50);
 		ArrayList<RealMatrix> M = measurements.get(0);
 		ArrayList<RealMatrix> X = measurements.get(1);
 		ArrayList<RealMatrix> Y = measurements.get(2);
 		ArrayList<RealMatrix> N = measurements.get(3);
-		RealMatrix[] calc_XY = qr24.calibrate(M, N);
+		RealMatrix[] calc_XY = {null, null};
+		try {
+			calc_XY = qr24.calibrate();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return;
+		}
+		
 		
 		RealMatrix genX = X.get(0);
 		RealMatrix genY = Y.get(0);
-
-		System.out.println("calcX1");
+		
+		System.out.println("genX");
+		qr24.printTable(genX);
+		System.out.println("calcX");
 		qr24.printTable(calc_XY[0]);
-//		System.out.println("calcX2");
-//		qr24.printTable(calc_XY[2]);
 		
-		System.out.println("calcY1");
+		System.out.println("genY");
+		qr24.printTable(genY);
+		System.out.println("calcY");
 		qr24.printTable(calc_XY[1]);
-//		System.out.println("calcY2");
-//		qr24.printTable(calc_XY[3]);
 		
-	}
-	
-	/**
-	 * creating A-matrix as RealMatrix containing coefficient values and B-Vector as array of type double
-	 * A and B are created using the RealMatrix ArrayLists poseMatrices and measuredPosesOfMarker
-	 * A and B are then used for determining X and Y matrices.
-	 */
-	public void start() {
-		
-		//create A-matrix (coefficient-matrix) and B-vector as double-array
-		RealMatrix A = new Array2DRowRealMatrix(12*this.numberOfMeasurements, 24);
-		double[] B = new double[12*this.numberOfMeasurements];
-		for(int cnt = 0; cnt < this.numberOfMeasurements; cnt++) {
-			//place Ai-submatrix in A-matrix using measuring data
-			A.setSubMatrix(createAEntry(this.poseMatrices.get(cnt), this.measuredPosesOfMarker.get(cnt)).getData(), 12*cnt, 0);
-			double[] bValuesForOneMeasurement = createBEntry(this.poseMatrices.get(cnt));
-			//adding bValues of the current measurement to the big B-matrix, containing b-values of all measurements
-			for(int insertBCnt = 0; insertBCnt < 12; insertBCnt++) {
-				B[cnt*12 + insertBCnt] = bValuesForOneMeasurement[insertBCnt];
-			}
-		}
-		
-		//TODO: print A and B
-		System.out.println("A = ");printTable(A);
-		System.out.println("B = " + B);
-		
-		//solving equation system
-		DecompositionSolver solver = new QRDecomposition(A).getSolver();
-		//creating ArrayRealVector out of double Array, cause the example on
-		//https://commons.apache.org/proper/commons-math/userguide/linear.html shows it like that
-		RealVector vector_B = new ArrayRealVector(B,true);
-		RealVector solution = solver.solve(vector_B);
-		
-		//create X and Y out off the solution array
-		RealMatrix X = new Array2DRowRealMatrix(new double[][] {
-												solution.getSubVector(0, 4).toArray(),
-												solution.getSubVector(4, 4).toArray(),
-												solution.getSubVector(8, 4).toArray(),
-												{0,0,0,1}});
-		RealMatrix Y = new Array2DRowRealMatrix(new double[][] {
-												solution.getSubVector(16, 4).toArray(),
-												solution.getSubVector(20, 4).toArray(),
-												solution.getSubVector(24, 4).toArray(),
-												{0,0,0,1}});									
-		
-		//TODO: print matrices for testing purposes
-		System.out.println("MX=YN (just for first measurement):");
-		printTable(this.poseMatrices.get(0).multiply(X));
-		printTable(Y.multiply(this.measuredPosesOfMarker.get(0)));
-		
-		System.out.println("x-values: ");
-		printTable(X);
-				
-		System.out.println("y-values: ");
-		printTable(Y);
 	}
 	
 	/**
@@ -322,49 +279,43 @@ public class QR24 {
 	 * for matrices X and Y
 	 * @param M consisting of Mi
 	 * @param N consisting if Ni
-	 * @return An array containing the matrix M and N, leading with M 
+	 * @return An array containing the matrix X and Y, leading with X 
+	 * @throws Exception Error when there're no measurements
 	 */
-	public RealMatrix[] calibrate(ArrayList<RealMatrix> M, ArrayList<RealMatrix> N) {
+	public RealMatrix[] calibrate() throws Exception {
+		
+		// if there's not data measured throw an error
+		if (poseMatrices.size()<=0 || measuredPosesOfMarker.size()<=0) {
+			throw new Exception("Keine Messungen vorhanden!");
+		}
+		
+		// create A and B matrix/vector related to the number of measurements
+		RealMatrix A = new Array2DRowRealMatrix(12*this.numberOfMeasurements, 24);
+		RealVector B = new ArrayRealVector(12*this.numberOfMeasurements);
 				
-		RealMatrix A = new Array2DRowRealMatrix(12*M.size(), 24);
-		RealVector B = new ArrayRealVector(12*M.size());
-
-		RealMatrix[] Rob_measurements = new RealMatrix[M.size()];
-		RealMatrix[] Track_measurements = new RealMatrix[M.size()];
-		
-		// Hier werden die Eintraege fuer die M und N Matrizen erstellt/kopiert
-		for(int i=0;i<M.size();i++) {
-			Track_measurements[i] = N.get(i);
-			Rob_measurements[i] = M.get(i);
+		// Here are the coefficientmatrix A and the solution vector B
+		// generated from all given Measurements Mi and Ni
+		for(int cnt=0;cnt<poseMatrices.size();cnt++) {
+			A.setSubMatrix(createAEntry(poseMatrices.get(cnt), measuredPosesOfMarker.get(cnt)).getData(), cnt*12, 0);
+			B.setSubVector(cnt*12, new ArrayRealVector(createBEntry(poseMatrices.get(cnt))));
 		}
 		
-		// Hier werden aus den Messungen Mi und Ni die Koeffizienten-Matrix A und der
-		// Loesungsvektor B generiert
-		for(int i=0;i<M.size();i++) {
-			A.setSubMatrix(createAEntry(Rob_measurements[i], Track_measurements[i]).getData(), i*12, 0);
-			B.setSubVector(i*12, new ArrayRealVector(createBEntry(Rob_measurements[i])));
-		}
-		
-		OLSMultipleLinearRegression regression = new OLSMultipleLinearRegression();
-		regression.newSampleData(B.toArray(), A.getData());
-		regression.setNoIntercept(true);
-		regression.newSampleData(B.toArray(), A.getData());
-		RealVector w1 = new ArrayRealVector(regression.estimateRegressionParameters());
-		
+		// create solver for the linear equation system and solve it 
 		DecompositionSolver solver = new QRDecomposition(A).getSolver();
-		RealVector w2 = solver.solve(B);
+		RealVector w = solver.solve(B);
 		
+		// generate Matrix X and Y from the solved vector
+		RealMatrix Y = getFromW(w.getSubVector(12, 12));
+		RealMatrix X = getFromW(w.getSubVector(0, 12));
 		
-		RealMatrix X1 = getFromW(w1.getSubVector(12, 12));
-		RealMatrix Y1 = getFromW(w1.getSubVector(0, 12));
+		// orthonormalize the rotational part of the X and Y matrices
+		RealMatrix XRot = new SingularValueDecomposition(getRot(X)).getV();
+		RealMatrix YRot = new SingularValueDecomposition(getRot(Y)).getV();
+		X.setSubMatrix(XRot.getData(), 0, 0);
+		Y.setSubMatrix(YRot.getData(), 0, 0);
 		
-		RealMatrix X2 = getFromW(w2.getSubVector(12, 12));
-		RealMatrix Y2 = getFromW(w2.getSubVector(0, 12));
-		
-//		printTable(X);
-//		printTable(Y);
-		
-		return new RealMatrix[] {X1,Y1, X2, Y2};
+		// return the calculated X and Y matrices
+		return new RealMatrix[] {X,Y};
 	}
 	
 	/**
@@ -409,21 +360,35 @@ public class QR24 {
 		
 		// first column
 		Ai.setSubMatrix(rotM.scalarMultiply(N.getEntry(0, 0)).getData(), 0, 0);
-		Ai.setSubMatrix(rotM.scalarMultiply(N.getEntry(0, 1)).getData(), 3, 0);
-		Ai.setSubMatrix(rotM.scalarMultiply(N.getEntry(0, 2)).getData(), 6, 0);
-		Ai.setSubMatrix(rotM.scalarMultiply(N.getEntry(0, 3)).getData(), 9, 0);
+		Ai.setSubMatrix(rotM.scalarMultiply(N.getEntry(1, 0)).getData(), 3, 0);
+		Ai.setSubMatrix(rotM.scalarMultiply(N.getEntry(2, 0)).getData(), 6, 0);
+		
+		//TODO: in den letzten Zeilen die Werte mit t bestehend aus gewissen Nij multiplizieren
+		double t1 = -(N.getEntry(0, 0)*N.getEntry(0, 3)+
+				N.getEntry(1,0)*N.getEntry(1,3)+
+				N.getEntry(2, 0)*N.getEntry(2, 3));
+		
+		Ai.setSubMatrix(rotM.scalarMultiply(t1).getData(), 9, 0);
 		                                                   
 		// second column
-		Ai.setSubMatrix(rotM.scalarMultiply(N.getEntry(1, 0)).getData(), 0, 3);
+		Ai.setSubMatrix(rotM.scalarMultiply(N.getEntry(0, 1)).getData(), 0, 3);
 		Ai.setSubMatrix(rotM.scalarMultiply(N.getEntry(1, 1)).getData(), 3, 3);
-		Ai.setSubMatrix(rotM.scalarMultiply(N.getEntry(1, 2)).getData(), 6, 3);
-		Ai.setSubMatrix(rotM.scalarMultiply(N.getEntry(1, 3)).getData(), 9, 3);
+		Ai.setSubMatrix(rotM.scalarMultiply(N.getEntry(2, 1)).getData(), 6, 3);
+		
+		double t2 = -(N.getEntry(0, 1)*N.getEntry(0,3)+
+				N.getEntry(1,1)*N.getEntry(1,3)+
+				N.getEntry(2,1)*N.getEntry(2, 3));
+		Ai.setSubMatrix(rotM.scalarMultiply(t2).getData(), 9, 3);
 
 		// third column
-		Ai.setSubMatrix(rotM.scalarMultiply(N.getEntry(2, 0)).getData(), 0, 6);
-		Ai.setSubMatrix(rotM.scalarMultiply(N.getEntry(2, 1)).getData(), 3, 6);
+		Ai.setSubMatrix(rotM.scalarMultiply(N.getEntry(0, 2)).getData(), 0, 6);
+		Ai.setSubMatrix(rotM.scalarMultiply(N.getEntry(1, 2)).getData(), 3, 6);
 		Ai.setSubMatrix(rotM.scalarMultiply(N.getEntry(2, 2)).getData(), 6, 6);
-		Ai.setSubMatrix(rotM.scalarMultiply(N.getEntry(2, 3)).getData(), 9, 6);
+		
+		double t3 = -(N.getEntry(0, 2)*N.getEntry(0, 3)+
+				N.getEntry(1,2)*N.getEntry(1,3)+
+				N.getEntry(2,2)*N.getEntry(2,3));
+		Ai.setSubMatrix(rotM.scalarMultiply(t3).getData(), 9, 6);
 		
 		// fourth column
 		Ai.setSubMatrix(Z.getData(), 0, 9);
@@ -455,17 +420,11 @@ public class QR24 {
 		return mat.copy().getSubMatrix(
 				new int[] {0,1,2}, new int[] {0,1,2});
 	}
-	
+		
 	/**
-	 * Returns translational part of matrix
-	 * @param mat Matrix containing at least 3 elements in the fourth column
-	 * @return RealMatrix contains translational part
+	 * prints the given matrix in console
+	 * @param m the matrix to porint to console
 	 */
-	private RealMatrix getTrans(RealMatrix mat) {
-		return mat.copy().getSubMatrix(new int[] {0,1,2}, new int[] {3});
-	}
-	
-	//TODO: print matrix by Micha
 	public void print(RealMatrix m) {
 		
 		double[][] arr = m.getData();
@@ -482,7 +441,10 @@ public class QR24 {
 		//This allows you to print the array as matrix
 	}
 
-	//TODO: print matrix by Moritz
+	/**
+	 * A more nice way to print the given matrix to the console
+	 * @param rm the matrix to print
+	 */
 	public void printTable(RealMatrix rm) {
 		int colDimNumber = rm.getColumnDimension();
 		int rowDimNumber = rm.getRowDimension();
