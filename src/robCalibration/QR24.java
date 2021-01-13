@@ -5,16 +5,12 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.ArrayRealVector;
-import org.apache.commons.math3.linear.BlockRealMatrix;
 import org.apache.commons.math3.linear.DecompositionSolver;
-import org.apache.commons.math3.linear.LUDecomposition;
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.QRDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
-import org.apache.commons.math3.linear.RealMatrixFormat;
 import org.apache.commons.math3.linear.RealVector;
 import org.apache.commons.math3.linear.SingularValueDecomposition;
-import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression;
 
 import robprakt.Constants;
 import robprakt.graphics.Controller;
@@ -66,12 +62,13 @@ public class QR24 {
 	 * Determines the midpoint of the local workspace.
 	 * Used for defining space in which the calibration is done.
 	 */
-	private double[] localWorkspaceMidpoint = {1000.0,1250.0,1300.0};
+//	private double[] localWorkspaceMidpoint = {1250.0,1250.0,1300.0};
+	private double[] localWorkspaceMidpoint = {0.0,200.0,40.0};
 	
 	/**
 	 * Defines radius of spherical workspace.
 	 */
-	private double radiusWorkspace = 500;
+	private double radiusWorkspace = 50;
 	
 	/**
 	 * List of specified robot pose matrices.
@@ -118,22 +115,20 @@ public class QR24 {
 		    doubleList.add(i);
 		}
 		if(matrix3x4.length != 12) System.out.println("[QR24] Setting localWorkspaceMidpoint wasn't successful, cause matrix is corrupted.");
-		doubleList.add(0.0);
-		doubleList.add(0.0);
-		doubleList.add(0.0);
-		doubleList.add(1.0);
+		doubleList.add(0.0d);
+		doubleList.add(0.0d);
+		doubleList.add(0.0d);
+		doubleList.add(1.0d);
 		System.out.println(doubleList);
 		for(int row = 0; row < 3; row++) {
 			for(int col = 0; col < 4; col++) {
-				System.out.println("test: " + row + col);
-				
-				this.initialMarkerPose[row][col] = doubleList.get(3*row+col);
+				this.initialMarkerPose[row][col] = doubleList.get(4*row+col);
 			}
 		}
 	}
 	
 	public void setLocalWorkspaceMidpoint(double[] matrix3x4) {
-		if(matrix3x4.length != 12) System.out.println("[QR24] Setting localWorkspaceMidpoint wasn't successful, cause matrix is corrupted.");
+		if(matrix3x4.length != 12) System.out.println("[QR24] Setting localWorkspaceMidpoint wasn't successful, because matrix is corrupted.");
 		this.localWorkspaceMidpoint[0] = matrix3x4[3];
 		this.localWorkspaceMidpoint[1] = matrix3x4[4+3];
 		this.localWorkspaceMidpoint[2] = matrix3x4[4+4+3];
@@ -157,7 +152,7 @@ public class QR24 {
 		double alpha_x;	//angle for rotation around x-axis
 		double beta_y;	//angle for rotation around y-axis
 		double gamma_z;	//angle for rotation around z-axis
-		double phase = Math.PI*(21/45);	//phase of 84°, in radians
+		double phase = Math.toRadians(15);//Math.PI*(21d/45d);	//phase of 84°, in radians
 		for(int cnt = 1; cnt <= numberOfMeasurements; cnt++) {
 		
 			//ROTATIONAL PART
@@ -165,6 +160,7 @@ public class QR24 {
 			alpha_x = ((0.5-random.nextDouble())*2)*phase;
 			beta_y = ((0.5-random.nextDouble())*2)*phase;
 			gamma_z = ((0.5-random.nextDouble())*2)*phase;
+			
 			//extrinsic rotation around fixed axis (Rx-Ry-Rz)
 			double a11 = Math.cos(beta_y)*Math.cos(gamma_z);
 			double a12 = -Math.cos(beta_y)*Math.sin(gamma_z);
@@ -181,14 +177,13 @@ public class QR24 {
 			RealMatrix robPoseMatrix = new Array2DRowRealMatrix (robPoseMatrixData);
 			//changing orientation regarding the basic orientation of the marker relative to the tracking sensor
 			//TODO: Validate if this is the correct order of multiplication
-			robPoseMatrix = robPoseMatrix.multiply(basicOrientationOfMarker);
+			robPoseMatrix = robPoseMatrix.multiply(basicOrientationOfMarker);			
 			
 			//TRANSLATIONAL PART
 			//generating random values inside a sphere defined by radiusWorkspace
-			robPoseMatrix.setEntry(0, 3, ((0.5-random.nextDouble())*2)*radiusWorkspace);
-			robPoseMatrix.setEntry(1, 3, ((0.5-random.nextDouble())*2)*radiusWorkspace);
-			robPoseMatrix.setEntry(2, 3, ((0.5-random.nextDouble())*2)*radiusWorkspace);
-			
+			robPoseMatrix.setEntry(0, 3, ((0.5-random.nextDouble())*2)*radiusWorkspace + localWorkspaceMidpoint[0]);
+			robPoseMatrix.setEntry(1, 3, ((0.5-random.nextDouble())*2)*radiusWorkspace + localWorkspaceMidpoint[1]);
+			robPoseMatrix.setEntry(2, 3, ((0.5-random.nextDouble())*2)*radiusWorkspace + localWorkspaceMidpoint[2]);
 			//add generated pose matrix to list
 			poseMatrices.add(robPoseMatrix);
 		}
@@ -208,9 +203,11 @@ public class QR24 {
 			String data = "MoveMinChangeRowWiseStatus" 	+ " " + robPoseMatrix.getEntry(0,0) + " " + robPoseMatrix.getEntry(0, 1) + " " + robPoseMatrix.getEntry(0,2) + " " + robPoseMatrix.getEntry(0, 3)
 														+ " " + robPoseMatrix.getEntry(1,0) + " " + robPoseMatrix.getEntry(1, 1) + " " + robPoseMatrix.getEntry(1,2) + " " + robPoseMatrix.getEntry(1, 3)
 														+ " " + robPoseMatrix.getEntry(2,0) + " " + robPoseMatrix.getEntry(2, 1) + " " + robPoseMatrix.getEntry(2,2) + " " + robPoseMatrix.getEntry(2, 3)
-														+ " " + " righty"; //TODO: Is "righty correct?"
+														+ " " + "noflip lefty"; //TODO: Is "righty correct?"
 			//send command to robot
 			controller.send(data, clientRob);
+			controller.response(clientRob);
+//			System.out.println("[QR24:measuring] "+controller.response(clientRob)+"\n at iteration "+cnt);
 			//wait a certain amount of time, till robot reaches pose
 			try {
 				TimeUnit.MILLISECONDS.sleep((long) (2*radiusWorkspace/(Constants.MAX_COMPOSITE_SPEED*Constants.MAX_ALLOWED_SPEED_RATIO)));
@@ -225,7 +222,7 @@ public class QR24 {
 			String s = controller.response(clientTS);
 			
 			//TODO: Which values does the tracking-system send back to the client for FORMAT_MATRIXROWWISE? --> example from manual seems to be wrong
-			double[] trackingData = Constants.convertPoseDataToDoubleArray(s);
+			double[] trackingData = Constants.convertPoseDataToDoubleArray(s, 2);
 			
 			//create RealMatrix out off the data that was send by tracking-system
 			double[][] trackingData2DArray = {{trackingData[0],trackingData[1],trackingData[2],trackingData[3]},{trackingData[4],trackingData[5],trackingData[6],trackingData[7]},{trackingData[8],trackingData[9],trackingData[10],trackingData[11]},{0,0,0,1}};
@@ -234,44 +231,6 @@ public class QR24 {
 			this.measuredPosesOfMarker.add(m);
 		}	
 		return true;
-	}
-	
-	/**
-	 * Main method to test the QR24-Algorithm. Currently not working because
-	 * Test-data must be measured by an actual robot and tracking-system 
-	 * @param args the program launch parameters -> not used here 
-	 */
-	public static void main(String[] args) {
-		QR24 qr24 = new QR24(new Controller(null));
-		
-		ArrayList<ArrayList<RealMatrix>> measurements = 
-				new testDataGenerator().generateTestData(50);
-		ArrayList<RealMatrix> M = measurements.get(0);
-		ArrayList<RealMatrix> X = measurements.get(1);
-		ArrayList<RealMatrix> Y = measurements.get(2);
-		ArrayList<RealMatrix> N = measurements.get(3);
-		RealMatrix[] calc_XY = {null, null};
-		try {
-			calc_XY = qr24.calibrate();
-		} catch (Exception e) {
-			e.printStackTrace();
-			return;
-		}
-		
-		
-		RealMatrix genX = X.get(0);
-		RealMatrix genY = Y.get(0);
-		
-		System.out.println("genX");
-		qr24.printTable(genX);
-		System.out.println("calcX");
-		qr24.printTable(calc_XY[0]);
-		
-		System.out.println("genY");
-		qr24.printTable(genY);
-		System.out.println("calcY");
-		qr24.printTable(calc_XY[1]);
-		
 	}
 	
 	/**
@@ -288,6 +247,8 @@ public class QR24 {
 		if (poseMatrices.size()<=0 || measuredPosesOfMarker.size()<=0) {
 			throw new Exception("Keine Messungen vorhanden!");
 		}
+		
+		System.out.println("[Calibrate] poseMatrices:"+poseMatrices.size()+", Measured: "+measuredPosesOfMarker.size());
 		
 		// create A and B matrix/vector related to the number of measurements
 		RealMatrix A = new Array2DRowRealMatrix(12*this.numberOfMeasurements, 24);
