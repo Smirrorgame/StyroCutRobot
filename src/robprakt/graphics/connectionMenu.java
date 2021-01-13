@@ -17,6 +17,7 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
 import robprakt.Constants;
+import robprakt.network.TCPClient;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -157,17 +158,20 @@ public class connectionMenu extends JPanel {
 		
 		//creating IP fields
 		//cutter-robot
-		ipFieldR1 = new JTextField("Enter IP-address for CUTTER-ROBOT");
+		ipFieldR1 = new JTextField("localhost");
+		ipFieldR1.setToolTipText("Enter IP-address for CUTTER-ROBOT");
 		ipFieldR1.setFont(new Font("Arial", Font.PLAIN, 12));
 		ipFieldR1.setForeground(Color.LIGHT_GRAY);
 		ipFieldR1.setPreferredSize(ipFieldsDim);
 		//holder-robot
-		ipFieldR2 = new JTextField("Enter IP-address for HOLDER-ROBOT");
+		ipFieldR2 = new JTextField("localhost");
+		ipFieldR2.setToolTipText("Enter IP-address for HOLDER-ROBOT");
 		ipFieldR2.setFont(new Font("Arial", Font.PLAIN, 12));
 		ipFieldR2.setForeground(Color.LIGHT_GRAY);
 		ipFieldR2.setPreferredSize(ipFieldsDim);
 		//tracking-system
-		ipFieldTS = new JTextField("Enter IP-address for TRACKING-SYSTEM");
+		ipFieldTS = new JTextField("localhost");
+		ipFieldTS.setToolTipText("Enter IP-address for TRACKING-SYSTEM");
 		ipFieldTS.setFont(new Font("Arial", Font.PLAIN, 12));
 		ipFieldTS.setForeground(Color.LIGHT_GRAY);
 		ipFieldTS.setPreferredSize(ipFieldsDim);
@@ -261,6 +265,9 @@ public class connectionMenu extends JPanel {
 				String ip = ipFieldR1.getText();
 				int port = 5005;
 				if(controller.connect(ip,port, controller.getClientR1())) {
+					// initial robot setup
+					controller.send("Hello Robot", controller.getClientR1());
+					System.out.println(controller.response(controller.getClientR1()));
 					connectR1.setText("<html><center>connect to<br>CUTTER-ROBOT<br><b>STATUS:<br>CONNECTED</b></center></html>");
 					connectR1.setBackground(Color.GREEN);
 				}else {
@@ -277,6 +284,9 @@ public class connectionMenu extends JPanel {
 				String ip = ipFieldR2.getText();
 				int port = 5005;
 				if(controller.connect(ip, port, controller.getClientR2())) {
+					// initial robot setup
+					controller.send("Hello Robot", controller.getClientR2());
+					System.out.println(controller.response(controller.getClientR2()));
 					connectR2.setText("<html><center>connect to<br>HOLDER-ROBOT<br><b>STATUS:<br>CONNECTED</b></center></html>");
 					connectR2.setBackground(Color.GREEN);
 				}else {
@@ -291,8 +301,20 @@ public class connectionMenu extends JPanel {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String ip = ipFieldTS.getText();
+				TCPClient c = controller.getClientTS();
 				int port = 5000;
-				if(controller.connect(ip, port, controller.getClientTS())) {
+				if(controller.connect(ip, port, c)) {
+					// do initial setup for Tracking System
+					controller.send("CM_GETSYSTEM", c);
+					System.out.println("[connectionMenu] response from Tracking System:");
+					System.out.println(controller.response(c));
+					controller.send("CM_GETTRACKERS", c);
+					String[] trackers = controller.response(c).split(";");
+					System.out.println("first Tracker: "+trackers[0]);
+					controller.send(trackers[0], c);
+					System.out.println(controller.response(c));
+					controller.send("FORMAT_MATRIXROWWISE", c);
+					System.out.println(controller.response(c));
 					connectTS.setText("<html><center>connect to<br>TRACKING-SYSTEM<br><b>STATUS:<br>CONNECTED</b></center></html>");
 					connectTS.setBackground(Color.GREEN);
 				}else {
@@ -306,5 +328,16 @@ public class connectionMenu extends JPanel {
 		connectR1.addActionListener(actionListenerbtnR1);
 		connectR2.addActionListener(actionListenerbtnR2);
 		connectTS.addActionListener(actionListenerbtnTS);
+	}
+	
+	protected JButton getConnectionButton(String serverType) {
+		if(serverType.equals("R1")){
+			return connectR1;
+		} else if(serverType.equals("R2")) {
+			return connectR2;
+		} else if(serverType.equals("TS")) {
+			return connectTS;
+		}
+		throw new IllegalArgumentException("[connectionMenu] String for the server type is not valid.");
 	}
 }

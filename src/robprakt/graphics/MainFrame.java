@@ -6,6 +6,7 @@ import java.awt.Toolkit;
 import javax.swing.JFrame;
 import javax.swing.JTabbedPane;
 
+import robCalibration.QR24;
 import robprakt.Constants;
 
 public class MainFrame extends JFrame {
@@ -26,9 +27,19 @@ public class MainFrame extends JFrame {
 	private cmdMenu cmdMenu;
 	
 	/**
+	 * Contains graphics structure for the calibration menu
+	 */
+	private CalibrationMenu calibrationMenu;
+	
+	/**
 	 * Controller for actions
 	 */
 	private Controller controller;
+	
+	/**
+	 * calibration contains functions for calibrating robots
+	 */
+	private QR24 calibration;
 	
 	/**
 	 * Create the main frame.
@@ -47,6 +58,9 @@ public class MainFrame extends JFrame {
 		// create controller
 		controller = new Controller(this);
 		
+		//create calibration object
+		calibration = new QR24(controller);
+		
 		// tabbedPane as basic pane for navigating between menus
 		tabbedContentPane = new JTabbedPane();
 		tabbedContentPane.setBackground(Color.LIGHT_GRAY);
@@ -54,12 +68,24 @@ public class MainFrame extends JFrame {
 		
 		// creating container hierarchy for menus
 		connectionMenu = new connectionMenu(controller);
-		cmdMenu = new cmdMenu(controller);
+		cmdMenu = new cmdMenu(controller, this);
+		calibrationMenu = new CalibrationMenu(controller, this, calibration);
 		
 		// adding menus to tabbedPane
 		tabbedContentPane.add("connections",connectionMenu);
 		tabbedContentPane.add("commands",cmdMenu);
+		tabbedContentPane.add("calibration",calibrationMenu);
 		
 		revalidate();
+		
+	}
+	
+	/**
+	 * Getter for the connectionMenu.
+	 * Used for updating connection status buttons.
+	 * @return connectionMenu contains GUI components of the connection tab
+	 */
+	protected connectionMenu getConnectionMenu() {
+		return this.connectionMenu;
 	}
 }

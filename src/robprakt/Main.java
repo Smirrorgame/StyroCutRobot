@@ -1,4 +1,5 @@
 package robprakt;
+import robCalibration.QR24;
 import robprakt.graphics.MainFrame;
 
 /**

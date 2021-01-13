@@ -103,10 +103,16 @@ public class cmdMenu extends JPanel{
 	private Controller controller;
 	
 	/**
+	 * The MainFrame of the GUI.
+	 */
+	private MainFrame mainFrame;
+	
+	/**
 	 * Create the frame.
 	 */
-	public cmdMenu(Controller controller) {
+	public cmdMenu(Controller controller, MainFrame m) {
 		this.controller = controller;
+		this.mainFrame = m;
 		
 		
 		//#########################
@@ -412,19 +418,41 @@ public class cmdMenu extends JPanel{
 			}
 		}
 		
-		//print response of the server
+		//print response of the server if send(cmd, client) was successful/true
 		String response = controller.response(client);
 		if(cmd.equals("CM_QUITCONNECTION")) {
 			responseFieldTS.setText("Tracking server shutdown successful.");
+			JButton btn = mainFrame.getConnectionMenu().getConnectionButton("TS");
+			btn.setText("<html><center>connect to<br>TRACKING<br><b>STATUS:<br>CLOSED</b></center></html>");
+			btn.setBackground(Color.RED);
 			return;
+		} else if(cmd.equals("Quit") && serverType.equals("cutter-robot")) {
+			responseFieldR1.setText("Connection to CUTTER-ROBOT has been closed successfully.");
+			JButton btn = mainFrame.getConnectionMenu().getConnectionButton("R1");
+			btn.setText("<html><center>connect to<br>CUTTER-ROBOT<br><b>STATUS:<br>CLOSED</b></center></html>");
+			btn.setBackground(Color.RED);
+		} else if(cmd.equals("Quit") && serverType.equals("holder-robot")) {
+			responseFieldR1.setText("Connection to HOLDER-ROBOT has been closed successfully.");
+			JButton btn = mainFrame.getConnectionMenu().getConnectionButton("R2");
+			btn.setText("<html><center>connect to<br>HOLDER-ROBOT<br><b>STATUS:<br>CLOSED</b></center></html>");
+			btn.setBackground(Color.RED);
 		}
 		if(response.contains("disconnected")){
 			if (serverType.equals("cutter-robot")) {
 				responseFieldR1.setText("Connection has been closed!");	
+				JButton btn = mainFrame.getConnectionMenu().getConnectionButton("R1");
+				btn.setText("<html><center>connect to<br>CUTTER-ROBOT<br><b>STATUS:<br>DISCONNECTED</b></center></html>");
+				btn.setBackground(Color.RED);
 			} else if (serverType.equals("holder-robot")) {
 				responseFieldR2.setText("Connection has been closed!");
+				JButton btn = mainFrame.getConnectionMenu().getConnectionButton("R2");
+				btn.setText("<html><center>connect to<br>HOLDER-ROBOT<br><b>STATUS:<br>DISCONNECTED</b></center></html>");
+				btn.setBackground(Color.RED);
 			} else {
 				responseFieldTS.setText("Connection has been closed!");
+				JButton btn = mainFrame.getConnectionMenu().getConnectionButton("TS");
+				btn.setText("<html><center>connect to<br>TRACKING<br><b>STATUS:<br>DISCONNECTED</b></center></html>");
+				btn.setBackground(Color.RED);
 			}
 			
 		}else {
