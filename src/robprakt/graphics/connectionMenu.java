@@ -158,17 +158,20 @@ public class connectionMenu extends JPanel {
 		
 		//creating IP fields
 		//cutter-robot
-		ipFieldR1 = new JTextField("Enter IP-address for CUTTER-ROBOT");
+		ipFieldR1 = new JTextField("localhost");
+		ipFieldR1.setToolTipText("Enter IP-address for CUTTER-ROBOT");
 		ipFieldR1.setFont(new Font("Arial", Font.PLAIN, 12));
 		ipFieldR1.setForeground(Color.LIGHT_GRAY);
 		ipFieldR1.setPreferredSize(ipFieldsDim);
 		//holder-robot
-		ipFieldR2 = new JTextField("Enter IP-address for HOLDER-ROBOT");
+		ipFieldR2 = new JTextField("localhost");
+		ipFieldR2.setToolTipText("Enter IP-address for HOLDER-ROBOT");
 		ipFieldR2.setFont(new Font("Arial", Font.PLAIN, 12));
 		ipFieldR2.setForeground(Color.LIGHT_GRAY);
 		ipFieldR2.setPreferredSize(ipFieldsDim);
 		//tracking-system
-		ipFieldTS = new JTextField("Enter IP-address for TRACKING-SYSTEM");
+		ipFieldTS = new JTextField("localhost");
+		ipFieldTS.setToolTipText("Enter IP-address for TRACKING-SYSTEM");
 		ipFieldTS.setFont(new Font("Arial", Font.PLAIN, 12));
 		ipFieldTS.setForeground(Color.LIGHT_GRAY);
 		ipFieldTS.setPreferredSize(ipFieldsDim);
