@@ -16,6 +16,8 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JPanel;
 import javax.swing.text.NumberFormatter;
 
+import org.apache.commons.math3.linear.RealMatrix;
+
 import robCalibration.QR24;
 import robprakt.Constants;
 import robprakt.network.TCPClient;
@@ -190,7 +192,7 @@ public class CalibrationMenu extends JPanel{
 					return;
 				};
 				//if send was successful -> save homogeneous matrix in localWorkspaceMidpoint of QR24 calibration object
-				double[] doubleArray = Constants.convertPoseDataToDoubleArray(controller.response(client));
+				double[] doubleArray = Constants.convertPoseDataToDoubleArray(controller.response(client), 0);
 				calibration.setLocalWorkspaceMidpoint(doubleArray);
 				calibration.setInitialMarkerPose(doubleArray);
 				midpointBtn.setBackground(Color.GREEN);
@@ -205,12 +207,19 @@ public class CalibrationMenu extends JPanel{
 				try {
 					if(calibration.measuring(client)) {
 						btnCalR1.setBackground(Color.GREEN);
+						System.out.println("########## measuring finished #############");
+						RealMatrix[] XY = calibration.calibrate();
+						calibration.printTable(XY[0]);
+						calibration.printTable(XY[1]);
 						return;
 					}
 					btnCalR1.setBackground(Color.RED);
 					return;
 				} catch (InterruptedException e1) {
 					System.out.println("During calibration something went wrong. Please visit: [QR24 --> measuring] ");
+				} catch (Exception e1) {
+					System.out.println("During calibration something went wrong. Please visit: [QR24 --> calibrate] ");
+					e1.printStackTrace();
 				}
 			}
 		};
@@ -223,12 +232,19 @@ public class CalibrationMenu extends JPanel{
 				try {
 					if(calibration.measuring(client)) {
 						btnCalR2.setBackground(Color.GREEN);
+						System.out.println("########## measuring finished #############");
+						RealMatrix[] XY = calibration.calibrate();
+						calibration.printTable(XY[0]);
+						calibration.printTable(XY[1]);
 						return;
 					}
 					btnCalR2.setBackground(Color.RED);
 					return;
 				} catch (InterruptedException e1) {
-					System.out.println("During calibration something went wrong. Please visit: [QR24 --> measuring] ");
+					System.out.println("During calibration something went wrong. Please visit: [QR24 --> measuring]");
+				} catch (Exception e1) {
+					System.out.println("During calibration something went wrong. Please visit: [QR24 --> calibrate] ");
+					e1.printStackTrace();
 				}
 			}
 		};
