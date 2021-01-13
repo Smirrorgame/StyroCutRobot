@@ -27,15 +27,13 @@ public class Constants {
 	 */
 	final static public int DEFAULT_NUM_MEASUREMENTS = 50;
 	
-	public static final double[] convertPoseDataToDoubleArray(String data) {
+	public static final double[] convertPoseDataToDoubleArray(String data, int index) {
 		String[] dataStringArray = data.split(" ");
-		double[] dataDoubleArray = {0,0,0,0,0,0,0,0,0,0,0,0,};
+		double[] dataDoubleArray = new double[12];
 		try
 	    {
-			for(int counter = 0; counter < dataStringArray.length; counter++) {
-				//TODO: REMOVE PRINT
-				System.out.println("String to be converted: " + dataStringArray[counter] + "test");
-				dataDoubleArray[counter] = Double.parseDouble(dataStringArray[counter]);
+			for(int counter = index; counter < dataDoubleArray.length; counter++) {
+				dataDoubleArray[counter-index] = Double.parseDouble(dataStringArray[counter]);
 			}
 	    }
 	    catch (NumberFormatException nfe)
