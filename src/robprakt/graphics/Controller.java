@@ -84,6 +84,6 @@ public class Controller {
 		if(client!=null) {
 			return client.receiveData();
 		}
-		return "ERROR, not connected to cutter-robot!";
+		return "ERROR, not connected!";
 	}
 }

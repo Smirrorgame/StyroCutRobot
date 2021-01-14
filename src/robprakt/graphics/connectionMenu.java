@@ -306,15 +306,14 @@ public class connectionMenu extends JPanel {
 				if(controller.connect(ip, port, c)) {
 					// do initial setup for Tracking System
 					controller.send("CM_GETSYSTEM", c);
-					System.out.println("[connectionMenu] response from Tracking System:");
-					System.out.println(controller.response(c));
+					controller.response(c);
 					controller.send("CM_GETTRACKERS", c);
 					String[] trackers = controller.response(c).split(";");
 					System.out.println("first Tracker: "+trackers[0]);
 					controller.send(trackers[0], c);
-					System.out.println(controller.response(c));
+					controller.response(c);
 					controller.send("FORMAT_MATRIXROWWISE", c);
-					System.out.println(controller.response(c));
+					controller.response(c);
 					connectTS.setText("<html><center>connect to<br>TRACKING-SYSTEM<br><b>STATUS:<br>CONNECTED</b></center></html>");
 					connectTS.setBackground(Color.GREEN);
 				}else {

@@ -383,7 +383,6 @@ public class cmdMenu extends JPanel{
 		if (serverType.equals("cutter-robot")) {
 			cmd = cmdTxtR1.getText();
 			client = this.controller.getClientR1();
-			System.out.println("TESTER");
 		} else if (serverType.equals("holder-robot")) {
 			cmd = cmdTxtR2.getText();
 			client = this.controller.getClientR2();
