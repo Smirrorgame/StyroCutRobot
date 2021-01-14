@@ -192,7 +192,13 @@ public class CalibrationMenu extends JPanel{
 					return;
 				};
 				//if send was successful -> save homogeneous matrix in localWorkspaceMidpoint of QR24 calibration object
-				double[] doubleArray = Constants.convertPoseDataToDoubleArray(controller.response(client), 0);
+				String response = controller.response(client);
+				if(response==null) {
+					System.out.println("[CalibrationMenu] Error, check connection to cutting Robot!");
+					midpointBtn.setBackground(Color.RED);
+					return;
+				}
+				double[] doubleArray = Constants.convertPoseDataToDoubleArray(response, 0);
 				calibration.setLocalWorkspaceMidpoint(doubleArray);
 				calibration.setInitialMarkerPose(doubleArray);
 				midpointBtn.setBackground(Color.GREEN);
