@@ -149,6 +149,7 @@ public class QR24 {
 	 */
 	//TODO: using SET-UP configuration to manually configure basicOrientationOfMarker regarding the orientation of tracking system and marker
 	private void createRobotPoseHomMatrices(RealMatrix basicOrientationOfMarker) {
+		poseMatrices.clear();
 		
 		Random random = new Random();
 		double alpha_x;	//angle for rotation around x-axis
@@ -207,9 +208,12 @@ public class QR24 {
 		//create random pose matrices
 		createRobotPoseHomMatrices(new Array2DRowRealMatrix(initialMarkerPose));
 		
+		// aktuelle Anzahl an Messungen:
+		int actualMeasureCount = numberOfMeasurements;
+		
 		//get TCP-client for the tracking-system
 		TCPClient clientTS = controller.getClientTS();
-		for(int cnt = 0; cnt < numberOfMeasurements; cnt++) {
+		for(int cnt = numberOfMeasurements-1; cnt >= 0; cnt--) {
 			robPoseMatrix = poseMatrices.get(cnt);
 			
 			String data = "MoveMinChangeRowWiseStatus" 	+ " " + robPoseMatrix.getEntry(0,0) + " " + robPoseMatrix.getEntry(0, 1) + " " + robPoseMatrix.getEntry(0,2) + " " + robPoseMatrix.getEntry(0, 3)
@@ -218,8 +222,17 @@ public class QR24 {
 														+ " " + "noflip lefty"; //TODO: Is "righty correct?"
 			//send command to robot
 			controller.send(data, clientRob);
-			controller.response(clientRob);
-//			System.out.println("[QR24:measuring] "+controller.response(clientRob)+"\n at iteration "+cnt);
+			String responseRob = controller.response(clientRob);
+			if(responseRob==null) {
+				System.out.println("Error, check connection to Robot!");
+				return false;
+			}
+			if(responseRob.toLowerCase().contains("false")) {
+				System.out.println("Orientation not valid!\nskipping current measurement");
+				poseMatrices.remove(robPoseMatrix);
+				actualMeasureCount--;
+				continue;
+			}
 			//wait a certain amount of time, till robot reaches pose
 			try {
 				TimeUnit.MILLISECONDS.sleep((long) (2*radiusWorkspace/(Constants.MAX_COMPOSITE_SPEED*Constants.MAX_ALLOWED_SPEED_RATIO)));
@@ -231,17 +244,25 @@ public class QR24 {
 			//TODO: extract values from the tracking system response and add them to the list
 			//TODO: create sendToTrackingSystem Method or use the controllers send method directly
 			controller.send("CM_NEXTVALUE",clientTS);
-			String s = controller.response(clientTS);
+			String responseTrack = controller.response(clientTS);
+			if(responseTrack==null) {
+				System.out.println("Error, check connection to Tracking System!");
+				return false;
+			}
 			
 			//TODO: Which values does the tracking-system send back to the client for FORMAT_MATRIXROWWISE? --> example from manual seems to be wrong
-			double[] trackingData = Constants.convertPoseDataToDoubleArray(s, 2);
+			double[] trackingData = Constants.convertPoseDataToDoubleArray(responseTrack, 2);
 			
 			//create RealMatrix out off the data that was send by tracking-system
 			double[][] trackingData2DArray = {{trackingData[0],trackingData[1],trackingData[2],trackingData[3]},{trackingData[4],trackingData[5],trackingData[6],trackingData[7]},{trackingData[8],trackingData[9],trackingData[10],trackingData[11]},{0,0,0,1}};
 			RealMatrix m = new Array2DRowRealMatrix (trackingData2DArray);
 			//adding measured matrix to list
 			this.measuredPosesOfMarker.add(m);
-		}	
+		}
+		
+		System.out.println("[QR24:Measuring] Echte Messungen: " +actualMeasureCount);
+		System.out.println("[QR24:Measuring] Übersprungene Messungen: " +(numberOfMeasurements-actualMeasureCount));
+		
 		return true;
 	}
 	
