@@ -110,8 +110,7 @@ public class QR24 {
 	 */
 	public void setInitialMarkerPose(double[] matrix3x4){
 		ArrayList<Double> doubleList = new ArrayList<Double>(matrix3x4.length);
-		for (double i : matrix3x4)
-		{
+		for (double i : matrix3x4) {
 		    doubleList.add(i);
 		}
 		if(matrix3x4.length != 12) System.out.println("[QR24] Setting localWorkspaceMidpoint wasn't successful, cause matrix is corrupted.");
@@ -119,7 +118,6 @@ public class QR24 {
 		doubleList.add(0.0d);
 		doubleList.add(0.0d);
 		doubleList.add(1.0d);
-		System.out.println(doubleList);
 		for(int row = 0; row < 3; row++) {
 			for(int col = 0; col < 4; col++) {
 				this.initialMarkerPose[row][col] = doubleList.get(4*row+col);
@@ -127,6 +125,10 @@ public class QR24 {
 		}
 	}
 	
+	/**
+	 * this method sets the local workspace midpoint coordinates to the translational values of the given Matrix
+	 * @param matrix3x4 the matrix with the new local workspace midpoint ccordinates
+	 */
 	public void setLocalWorkspaceMidpoint(double[] matrix3x4) {
 		if(matrix3x4.length != 12) System.out.println("[QR24] Setting localWorkspaceMidpoint wasn't successful, because matrix is corrupted.");
 		this.localWorkspaceMidpoint[0] = matrix3x4[3];
@@ -189,6 +191,16 @@ public class QR24 {
 		}
 	}
 	
+	/**
+	 * This method sets the robot to random orientations respective to the local
+	 * workspace midpoint and the workspace radius. This orientation will then be
+	 * measured again and also the orientation of the tracker will be measured.
+	 * Those orientations will then be added to a set of measurements. 
+	 *  
+	 * @param clientRob the robot client which is currently being measured on
+	 * @return true if measurement was successful
+	 * @throws InterruptedException when the Thread has been interrupted
+	 */
 	public boolean measuring(TCPClient clientRob) throws InterruptedException {
 		RealMatrix robPoseMatrix;
 		
