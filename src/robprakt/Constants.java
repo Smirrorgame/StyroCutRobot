@@ -20,7 +20,7 @@ public class Constants {
 	/**
 	 * maximum allowed speed in labor in percentage
 	 */
-	final static public double MAX_ALLOWED_SPEED_RATIO = 25;
+	final static public double MAX_ALLOWED_SPEED_RATIO = 0.25;
 	
 	/**
 	 * default number of measurements
