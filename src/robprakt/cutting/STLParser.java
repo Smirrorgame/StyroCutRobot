@@ -85,8 +85,7 @@ public class STLParser {
 		}
 		return mesh;
 	}
-	
-	
+		
 	public static String readblock(byte[] allBytes, int offset, int length) {
 		if(allBytes.length-offset<length) length = allBytes.length-offset;
 		Charset charset = Charset.forName("UTF-8");
@@ -125,8 +124,6 @@ public class STLParser {
 		r |= (bytes[3] & 0xff) << 24 ;		
 		return r;
 	}
-
-
 	
 	/**
 	 * Reads an STL ASCII file content provided as a String
@@ -137,7 +134,6 @@ public class STLParser {
 	 * formatted
 	 */
 	public static List<Triangle> readASCII(String content) {
-		System.out.println("Parsing ASCII STL format");
 		// string is lowercase
 		ArrayList<Triangle> triangles = new ArrayList<>();
 				
@@ -152,7 +148,6 @@ public class STLParser {
 				}
 				try {
 					Vector3D[] vertices = new Vector3D[3];
-//					Vec3d[] vertices = new Vec3d[3];
 					for (int v = 0; v < vertices.length; v++) {
 						position = content.indexOf("vertex", position) + "vertex".length();
 						while (Character.isWhitespace(content.charAt(position))) {

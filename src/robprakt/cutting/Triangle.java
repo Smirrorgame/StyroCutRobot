@@ -14,8 +14,19 @@ public class Triangle {
 		this.vertices[2] = v3;
 		
 		Vector3D edge1 = this.vertices[1].subtract(this.vertices[0]);
-		Vector3D edge2 = this.vertices[1].subtract(this.vertices[0]);
+		Vector3D edge2 = this.vertices[2].subtract(this.vertices[0]);
 		this.normal = Vector3D.crossProduct(edge1, edge2).normalize();
+	}
+	
+	@Override
+	public String toString() {
+		String s = "";
+		for(Vector3D v: vertices) {
+			s+=v.toString()+"\n";
+		}
+		s+="\n";
+		
+		return s;
 	}
 
 }
