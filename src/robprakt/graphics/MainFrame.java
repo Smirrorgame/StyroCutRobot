@@ -32,6 +32,11 @@ public class MainFrame extends JFrame {
 	private CalibrationMenu calibrationMenu;
 	
 	/**
+	 * Contains graphics structure for the cutting menu
+	 */
+	private CuttingMenu cuttingMenu;
+	
+	/**
 	 * Controller for actions
 	 */
 	private Controller controller;
@@ -70,11 +75,13 @@ public class MainFrame extends JFrame {
 		connectionMenu = new connectionMenu(controller);
 		cmdMenu = new cmdMenu(controller, this);
 		calibrationMenu = new CalibrationMenu(controller, this, calibration);
+		cuttingMenu = new CuttingMenu(controller, this);
 		
 		// adding menus to tabbedPane
-		tabbedContentPane.add("connections",connectionMenu);
-		tabbedContentPane.add("commands",cmdMenu);
-		tabbedContentPane.add("calibration",calibrationMenu);
+		tabbedContentPane.add("Connections",connectionMenu);
+		tabbedContentPane.add("Commands",cmdMenu);
+		tabbedContentPane.add("Calibration",calibrationMenu);
+		tabbedContentPane.add("Cutting",cuttingMenu);
 		
 		revalidate();
 		
