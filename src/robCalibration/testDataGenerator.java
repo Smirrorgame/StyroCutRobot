@@ -18,7 +18,7 @@ import robprakt.graphics.Controller;
  * By calling the function generateTestData(int numberOfMeasurements) it is possible to get a certain amount of measuring-data, inclusive the solution for
  * the calibration algorithm.
  * 
- * Checkout the paper "Non-orthogonal tool/flange and robot/world calibration" by Floris Ernst to understand the naming scheme used in my Code better.
+ * Checkout the paper "Non-orthogonal tool/flange and robot/world calibration" by Floris Ernst to understand the naming scheme.
  * https://www.rob.uni-luebeck.de/publikationen_downloads/ermm_12.pdf-b46951f770e1e17036ee6b18fe686a1b.pdf
  * 
  * @author DezzardHD

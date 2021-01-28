@@ -28,21 +28,10 @@ import robprakt.network.TCPClient;
  * CONVENTIONS for this class:
  * continuously using 4x4 homogeneous matrices
  * unit of length: millimeter
- * 
  * ===
- * 
- * Fragen:
- * Kann man die selbst spezifizierten Matrizen für die Pose des Roboters für die Berechnung verwenden,
- * oder sollte man die Position vom Roboter nochmals abfragen? --> Möglicherweise ist die Matrix des Roboters
- * leicht anders als die, die man anfahren wollte. (praktisch ausprobieren)
  * 
  */
 
-/*
- * TODO:
- * Unterschied zwischen LU- und QR-Decomposition ermitteln.
- * Standard Algorithmus nutzen, statt den korrupten
- */
 public class QR24 {
 	
 	/**
@@ -62,8 +51,7 @@ public class QR24 {
 	 * Determines the midpoint of the local workspace.
 	 * Used for defining space in which the calibration is done.
 	 */
-//	private double[] localWorkspaceMidpoint = {1250.0,1250.0,1300.0};
-	private double[] localWorkspaceMidpoint = {0.0,200.0,40.0};
+	private double[] localWorkspaceMidpoint = Constants.DEFAULT_LOCAL_WORKSPACE_MIDPOINT;
 	
 	/**
 	 * Defines radius of spherical workspace.
@@ -155,7 +143,7 @@ public class QR24 {
 		double alpha_x;	//angle for rotation around x-axis
 		double beta_y;	//angle for rotation around y-axis
 		double gamma_z;	//angle for rotation around z-axis
-		double phase = Math.toRadians(15);//Math.PI*(21d/45d);	//phase of 84°, in radians
+		double phase = Math.toRadians(15);//Math.PI*(21d/45d);	//phase of 15� in radians
 		for(int cnt = 1; cnt <= numberOfMeasurements; cnt++) {
 		
 			//ROTATIONAL PART
@@ -179,7 +167,6 @@ public class QR24 {
 			double[][] robPoseMatrixData = {{a11,a12,a13,0},{a21,a22,a23,0},{a31,a32,a33,0},{0d,0d,0d,1d}};
 			RealMatrix robPoseMatrix = new Array2DRowRealMatrix (robPoseMatrixData);
 			//changing orientation regarding the basic orientation of the marker relative to the tracking sensor
-			//TODO: Validate if this is the correct order of multiplication
 			robPoseMatrix = robPoseMatrix.multiply(basicOrientationOfMarker);			
 			
 			//TRANSLATIONAL PART
@@ -219,7 +206,7 @@ public class QR24 {
 			String data = "MoveMinChangeRowWiseStatus" 	+ " " + robPoseMatrix.getEntry(0,0) + " " + robPoseMatrix.getEntry(0, 1) + " " + robPoseMatrix.getEntry(0,2) + " " + robPoseMatrix.getEntry(0, 3)
 														+ " " + robPoseMatrix.getEntry(1,0) + " " + robPoseMatrix.getEntry(1, 1) + " " + robPoseMatrix.getEntry(1,2) + " " + robPoseMatrix.getEntry(1, 3)
 														+ " " + robPoseMatrix.getEntry(2,0) + " " + robPoseMatrix.getEntry(2, 1) + " " + robPoseMatrix.getEntry(2,2) + " " + robPoseMatrix.getEntry(2, 3)
-														+ " " + "noflip lefty"; //TODO: Is "righty correct?"
+														+ " " + "noflip lefty";
 			//send command to robot
 			controller.send(data, clientRob);
 			String responseRob = controller.response(clientRob);
@@ -240,9 +227,6 @@ public class QR24 {
 				System.out.println("[QR24] While waiting for the robot to reach pose, the thread has been interrupted.");
 			}
 			
-			//TODO: create initial setup with robot, so it only sends MATRIXROWWISE data
-			//TODO: extract values from the tracking system response and add them to the list
-			//TODO: create sendToTrackingSystem Method or use the controllers send method directly
 			controller.send("CM_NEXTVALUE",clientTS);
 			String responseTrack = controller.response(clientTS);
 			if(responseTrack==null) {
@@ -250,7 +234,6 @@ public class QR24 {
 				return false;
 			}
 			
-			//TODO: Which values does the tracking-system send back to the client for FORMAT_MATRIXROWWISE? --> example from manual seems to be wrong
 			double[] trackingData = Constants.convertPoseDataToDoubleArray(responseTrack, 2);
 			
 			//create RealMatrix out off the data that was send by tracking-system
@@ -417,7 +400,7 @@ public class QR24 {
 		
 	/**
 	 * prints the given matrix in console
-	 * @param m the matrix to porint to console
+	 * @param m the matrix to print to console
 	 */
 	public void print(RealMatrix m) {
 		

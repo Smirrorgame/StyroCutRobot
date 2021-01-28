@@ -18,6 +18,7 @@ import javax.swing.text.NumberFormatter;
 
 import org.apache.commons.math3.linear.RealMatrix;
 
+import cutting.TransformCoords;
 import robCalibration.QR24;
 import robprakt.Constants;
 import robprakt.network.TCPClient;
@@ -217,6 +218,8 @@ public class CalibrationMenu extends JPanel{
 						RealMatrix[] XY = calibration.calibrate();
 						calibration.printTable(XY[0]);
 						calibration.printTable(XY[1]);
+						TransformCoords.setCutterRobotToTrackinSystem(XY[0]);
+						TransformCoords.setHolderRobotToTrackinSystem(XY[1]);
 						return;
 					}
 					btnCalR1.setBackground(Color.RED);

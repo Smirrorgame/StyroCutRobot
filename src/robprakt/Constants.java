@@ -27,6 +27,11 @@ public class Constants {
 	 */
 	final static public int DEFAULT_NUM_MEASUREMENTS = 50;
 	
+	/**
+	 * default position of the workspace
+	 */
+	final static public double[] DEFAULT_LOCAL_WORKSPACE_MIDPOINT = {0.0,200.0,40.0};
+	
 	public static final double[] convertPoseDataToDoubleArray(String data, int index) {
 		String[] dataStringArray = data.split(" ");
 		double[] dataDoubleArray = new double[12];
