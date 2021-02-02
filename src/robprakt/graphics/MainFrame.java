@@ -8,6 +8,7 @@ import javax.swing.JTabbedPane;
 
 import robCalibration.QR24;
 import robprakt.Constants;
+import robprakt.cutting.TransformCoords;
 
 public class MainFrame extends JFrame {
 	
@@ -46,6 +47,8 @@ public class MainFrame extends JFrame {
 	 */
 	private QR24 calibration;
 	
+	private TransformCoords transformCoords;
+	
 	/**
 	 * Create the main frame.
 	 */
@@ -75,7 +78,7 @@ public class MainFrame extends JFrame {
 		connectionMenu = new connectionMenu(controller);
 		cmdMenu = new cmdMenu(controller, this);
 		calibrationMenu = new CalibrationMenu(controller, this, calibration);
-		cuttingMenu = new CuttingMenu(controller, this);
+		cuttingMenu = new CuttingMenu(controller);
 		
 		// adding menus to tabbedPane
 		tabbedContentPane.add("Connections",connectionMenu);

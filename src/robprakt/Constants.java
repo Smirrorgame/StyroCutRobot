@@ -37,7 +37,7 @@ public class Constants {
 		double[] dataDoubleArray = new double[12];
 		try
 	    {
-			for(int counter = index; counter < dataDoubleArray.length; counter++) {
+			for(int counter = index; counter < dataDoubleArray.length + index; counter++) {
 				dataDoubleArray[counter-index] = Double.parseDouble(dataStringArray[counter]);
 			}
 	    }

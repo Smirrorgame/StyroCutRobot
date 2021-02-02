@@ -16,9 +16,10 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JPanel;
 import javax.swing.text.NumberFormatter;
 
+import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.RealMatrix;
 
-import cutting.TransformCoords;
+import robprakt.cutting.TransformCoords;
 import robCalibration.QR24;
 import robprakt.Constants;
 import robprakt.network.TCPClient;
@@ -202,7 +203,10 @@ public class CalibrationMenu extends JPanel{
 				double[] doubleArray = Constants.convertPoseDataToDoubleArray(response, 0);
 				calibration.setLocalWorkspaceMidpoint(doubleArray);
 				calibration.setInitialMarkerPose(doubleArray);
+				TransformCoords.initialWorkspacePositionRelCutterRobot = new ArrayRealVector(new double[] {doubleArray[3],doubleArray[3+4],doubleArray[3+4+4]});
 				midpointBtn.setBackground(Color.GREEN);
+				//TODO: Stelle sicher, dass das Setzen des Mittelpunkts des Arbeitsraums nach dem Start einer Kalibrierung
+				//TODO: nicht nochmal durchgeführt werden kann.
 			}
 		};
 		//starting calibration process for cutter-robot
@@ -218,8 +222,7 @@ public class CalibrationMenu extends JPanel{
 						RealMatrix[] XY = calibration.calibrate();
 						calibration.printTable(XY[0]);
 						calibration.printTable(XY[1]);
-						TransformCoords.setCutterRobotToTrackinSystem(XY[0]);
-						TransformCoords.setHolderRobotToTrackinSystem(XY[1]);
+						TransformCoords.cutterRobotToTrackingSystem = XY[1]; //setting matrix for cutting-procedure
 						return;
 					}
 					btnCalR1.setBackground(Color.RED);
@@ -245,6 +248,7 @@ public class CalibrationMenu extends JPanel{
 						RealMatrix[] XY = calibration.calibrate();
 						calibration.printTable(XY[0]);
 						calibration.printTable(XY[1]);
+						TransformCoords.holderRobotToTrackingSystem = XY[1]; //setting matrix for cutting-procedure
 						return;
 					}
 					btnCalR2.setBackground(Color.RED);

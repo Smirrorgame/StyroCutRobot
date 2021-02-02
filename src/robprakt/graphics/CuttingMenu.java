@@ -27,6 +27,7 @@ import javax.swing.JTextPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import robprakt.Constants;
+import robprakt.cutting.CuttingLogic;
 import robprakt.cutting.STLParser;
 import robprakt.cutting.Triangle;
 import robprakt.network.TCPClient;
@@ -43,31 +44,22 @@ public class CuttingMenu extends JPanel{
 	 * cmdPane is split up into 3 JPanel rows containing components for communication
 	 */
 	private JPanel row1;
+	private JPanel row2;
 	
 	/**
 	 * command input text field for cutter-robot
 	 */
 	private JTextField cmdTxtR1;
-	
-	/**
-	 * status if the text field is focused
-	 */
-	private boolean focusTxtR1;
-	
-	/**
-	 * status if the text field is focused
-	 */
-	private boolean focusTxtR2;
-	
-	/**
-	 * status if the text field is focused
-	 */
-	private boolean focusTxtTS;
 
 	/**
 	 * button for sending command from cmdTxtR1 text field to cutter-robot
 	 */
 	private JButton sendCmdR1;
+	
+	/**
+	 * button for starting cutting process
+	 */
+	private JButton startCutting;
 	
 	/**
 	 * response text field of cutter-robot
@@ -80,16 +72,17 @@ public class CuttingMenu extends JPanel{
 	private Controller controller;
 	
 	/**
-	 * The MainFrame of the GUI.
+	 * Holds the cutting-logic
 	 */
-	private MainFrame mainFrame;
+	private CuttingLogic cuttingLogic;
+	//TODO: Ist es überhaupt notwendig cuttingLogic in CuttingMenu zu speichern?
+	//		Reicht nicht auch eine methodeninterne Speicherung. siehe ActionListener of START CUTTING
 	
 	/**
 	 * Create the frame.
 	 */
-	public CuttingMenu(Controller controller, MainFrame m) {
+	public CuttingMenu(Controller controller) {
 		this.controller = controller;
-		this.mainFrame = m;
 		
 		
 		//#########################
@@ -99,8 +92,10 @@ public class CuttingMenu extends JPanel{
 		this.setLayout(new GridLayout(3,1));
 		// generating JPanel with GridBagLayout
 		row1 = new JPanel(new GridBagLayout());
+		row2 = new JPanel(new GridBagLayout());
 		// adding rows to cmdPane
 		add(row1);
+		add(row2);
 		
 		
 		// defining dimensions and constraints of the components
@@ -126,6 +121,14 @@ public class CuttingMenu extends JPanel{
 		responseFieldGBS1.gridx = 0;
 		responseFieldGBS1.gridy = 1;
 		
+		// for startCutting button
+		Dimension startCuttingDim = new Dimension(Constants.mainFrameWidth*6/20,Constants.mainFrameHeight/20);
+		GridBagConstraints startCuttingGBS = new GridBagConstraints();
+		startCuttingGBS.gridx = 0;
+		startCuttingGBS.gridy = 0;
+		startCuttingGBS.anchor = GridBagConstraints.CENTER;
+		startCuttingGBS.insets = new Insets(10,10,10,10);
+		
 		
 		// creating text fields
 		// cutter-robot
@@ -148,6 +151,11 @@ public class CuttingMenu extends JPanel{
 		responseFieldR1.setPreferredSize(responseFieldDim);
 		responseFieldR1.setEditable(false);
 		
+		// creating startCutting button
+		startCutting = new JButton("START CUTTING");
+		startCutting.setPreferredSize(startCuttingDim);
+		startCutting.setFont(new Font("Arial", Font.BOLD, 11));
+		
 		//adding components to rows
 		//text fields for commands
 		row1.add(cmdTxtR1,cmdTxtGBS1);
@@ -156,7 +164,12 @@ public class CuttingMenu extends JPanel{
 		//response-text-pane
 		row1.add(responseFieldR1,responseFieldGBS1);
 		
+		//startCutting button
+		row2.add(startCutting,startCuttingGBS);
 		
+		//#########################
+		//########LISTENERS########
+		//#########################
 		//add function to "send command"-buttons --> creating ActionListeners
 		//cutter-robot
 		ActionListener actionListenerSendCmdR1 = new ActionListener() {
@@ -166,8 +179,32 @@ public class CuttingMenu extends JPanel{
 			}
 		};
 		
+		ActionListener actionListenerStartCutting = new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// check if a working connection to robot servers has been established
+				TCPClient clientR1 = controller.getClientR1();
+				TCPClient clientR2 = controller.getClientR2();
+				if(clientR1 == null || clientR2 == null) throw new NullPointerException(
+						"[CuttingMenu] At least one TCP-Client is not initialized.");
+				if(!controller.send("IsAdept", clientR1) && !controller.send("IsAdept", clientR2)) throw new IllegalStateException(
+						"[CuttingMenu] At least one connection to a robot server is not healthy. Check IP-address and port of connection.");
+				
+				// check if there is already a cutting process running, if so the START-CUTTING button is disabled
+				if(!CuttingLogic.isCuttingActive()) {
+					cuttingLogic = new CuttingLogic(clientR1,clientR2);
+					try {
+						cuttingLogic.cut();
+					} catch (Exception e1) {
+						e1.printStackTrace();
+					}
+				}
+			}
+		};
+		
 		//add ActionListeners to JButtons
 		sendCmdR1.addActionListener(actionListenerSendCmdR1);
+		startCutting.addActionListener(actionListenerStartCutting);
 	}
 	
 	/**

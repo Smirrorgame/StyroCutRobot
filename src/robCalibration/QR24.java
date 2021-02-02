@@ -115,7 +115,7 @@ public class QR24 {
 	
 	/**
 	 * this method sets the local workspace midpoint coordinates to the translational values of the given Matrix
-	 * @param matrix3x4 the matrix with the new local workspace midpoint ccordinates
+	 * @param matrix3x4 the matrix with the new local workspace midpoint coordinates
 	 */
 	public void setLocalWorkspaceMidpoint(double[] matrix3x4) {
 		if(matrix3x4.length != 12) System.out.println("[QR24] Setting localWorkspaceMidpoint wasn't successful, because matrix is corrupted.");
@@ -136,8 +136,10 @@ public class QR24 {
 	 * 									part is used to define orientation of the marker.
 	 */
 	//TODO: using SET-UP configuration to manually configure basicOrientationOfMarker regarding the orientation of tracking system and marker
-	private void createRobotPoseHomMatrices(RealMatrix basicOrientationOfMarker) {
-		poseMatrices.clear();
+	private void createRobotPoseHomMatrices(RealMatrix basicOrientationOfMarker, TCPClient clientRob) {
+		//reset lists, so code works during a second calibration
+		this.poseMatrices.clear();
+		this.measuredPosesOfMarker.clear();
 		
 		Random random = new Random();
 		double alpha_x;	//angle for rotation around x-axis
@@ -171,8 +173,14 @@ public class QR24 {
 			
 			//TRANSLATIONAL PART
 			//generating random values inside a sphere defined by radiusWorkspace
+			
+			//decide if calibration gets done in the positive or in the negative y-coordinate space
+			//TODO: Überprüfe, ob der beide Positionen angefahren werden können, von beiden Robotern.
+			double positiveOrNegativeYSpace = 1;
+			if(clientRob != controller.getClientR1()) positiveOrNegativeYSpace = -1;
+			
 			robPoseMatrix.setEntry(0, 3, ((0.5-random.nextDouble())*2)*radiusWorkspace + localWorkspaceMidpoint[0]);
-			robPoseMatrix.setEntry(1, 3, ((0.5-random.nextDouble())*2)*radiusWorkspace + localWorkspaceMidpoint[1]);
+			robPoseMatrix.setEntry(1, 3, ((0.5-random.nextDouble())*2)*radiusWorkspace + positiveOrNegativeYSpace*localWorkspaceMidpoint[1]);
 			robPoseMatrix.setEntry(2, 3, ((0.5-random.nextDouble())*2)*radiusWorkspace + localWorkspaceMidpoint[2]);
 			//add generated pose matrix to list
 			poseMatrices.add(robPoseMatrix);
@@ -190,10 +198,16 @@ public class QR24 {
 	 * @throws InterruptedException when the Thread has been interrupted
 	 */
 	public boolean measuring(TCPClient clientRob) throws InterruptedException {
+		//TODO: Zu Beginn einer Messung muss sichergestellt werden, dass beide Roboter eine Stellung annehmen, sodass keine Kollision zwischen den Robotern
+		//TODO: auftritt, während der Kalibrierung durchgeführt wird.
+		//TODO: Option1: 	manuell in eine neutrale Position fahren --> ist wahrscheinlich das sicherste. --> PREFERRED
+		//TODO: Option2: 	neutrale Position je Roboter zu Beginn einer Messung anfahren, wobei Roboter beim
+		//					anfahren der neutralen Position crashen könnten, wenn sie ungünstig gestellt sind.
+		
 		RealMatrix robPoseMatrix;
 		
 		//create random pose matrices
-		createRobotPoseHomMatrices(new Array2DRowRealMatrix(initialMarkerPose));
+		createRobotPoseHomMatrices(new Array2DRowRealMatrix(initialMarkerPose), clientRob);
 		
 		// aktuelle Anzahl an Messungen:
 		int actualMeasureCount = numberOfMeasurements;
@@ -245,6 +259,13 @@ public class QR24 {
 		
 		System.out.println("[QR24:Measuring] Echte Messungen: " +actualMeasureCount);
 		System.out.println("[QR24:Measuring] Übersprungene Messungen: " +(numberOfMeasurements-actualMeasureCount));
+	
+		// after measuring has been finished, move the robot to a neutral position
+		// for both robots the end-effector is going to point into x-direction
+		// TODO: Sicherstellen, dass der Roboter diese Pose anfahren kann.
+		// TODO: Falls erwünscht eine Zeitspanne einbauen.
+		String neutralPosition = "MoveMinChangeRowWiseStatus 1.0 0.0 0.0 1000.0 0.0 1.0 0.0 100.0 0.0 0.0 1.0 1000.0 noflip lefty";
+		controller.send(neutralPosition, clientRob);
 		
 		return true;
 	}
@@ -261,7 +282,7 @@ public class QR24 {
 		
 		// if there's not data measured throw an error
 		if (poseMatrices.size()<=0 || measuredPosesOfMarker.size()<=0) {
-			throw new Exception("Keine Messungen vorhanden!");
+			throw new Exception("No measurements taken.");
 		}
 		
 		System.out.println("[Calibrate] poseMatrices:"+poseMatrices.size()+", Measured: "+measuredPosesOfMarker.size());
