@@ -24,3 +24,7 @@ Wir nutzen zur Kalibrierung der Roboter den QR24-Algorithmus aus folgendem Paper
   5. "Modulepath" auswählen und rechts auf "Add External JARs" klicken.
   6. commons-math3-xxx.jar auswählen, wobei xxx die Versionsnummer ist, und auf "Apply and Close" klicken
   7. Eventuell im Package Explorer F5 für einen Refresh drücken, damit alles nochmal neu geladen wird
+
+## Simulation
+Dieses Programm funktioniert auch mit der eigens entwickelten Simulationsumgebung [StyroCutRobot Simulator](https://github.com/Smirrorgame/StyroCutRobotSimulator), die benutzt werden kann, falls kein Roboter und Trackingsystem in Reichweite ist oder wenn man einfach mal ein wenig mit dem Programm rumspielen möchte.
+Die Simulationsumgebung basiert auf JavaScript mit der [p5.js](https://p5js.org/) Library und [Node.js](https://nodejs.org/). Sie wird dementsprechend im Browser ausgeführt.
