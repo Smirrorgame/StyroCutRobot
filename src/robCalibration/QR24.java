@@ -1,5 +1,6 @@
 package robCalibration;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -256,7 +257,8 @@ public class QR24 {
 			//adding measured matrix to list
 			this.measuredPosesOfMarker.add(m);
 		}
-		
+
+		Collections.reverse(measuredPosesOfMarker);
 		System.out.println("[QR24:Measuring] Echte Messungen: " +actualMeasureCount);
 		System.out.println("[QR24:Measuring] Übersprungene Messungen: " +(numberOfMeasurements-actualMeasureCount));
 	
