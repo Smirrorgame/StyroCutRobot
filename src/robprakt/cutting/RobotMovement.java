@@ -1,6 +1,9 @@
 package robprakt.cutting;
 
+import java.util.ArrayList;
+
 import org.apache.commons.math3.linear.RealMatrix;
+import org.apache.commons.math3.linear.RealVector;
 
 import robprakt.network.TCPClient;
 
@@ -15,16 +18,16 @@ public class RobotMovement {
 	private TransformCoords transformCoords;
 	
 	/**
-	 * neutralPosition is a homogeneous matrix containing pose for a neutral position of cutter-robot
+	 * neutralPosition is a homogeneous vector containing neutral position of cutter-robot
 	 * relative to cutter-robot
 	 */
-	private RealMatrix neutralPosition;
+	private RealVector neutralPosition;
 	
 	/**
-	 * auxiliaryPosition is a homogeneous matrix containing pose for an auxiliary position of cutter-robot
+	 * auxiliaryPosition is a homogeneous vector containing an auxiliary position of cutter-robot
 	 * relative to cutter-robot
 	 */
-	private RealMatrix auxiliaryPosition;
+	private RealVector auxiliaryPosition;
 	
 	/**
 	 * quantizationStep sets the point to point width for calculating points on a trajectory
@@ -46,22 +49,37 @@ public class RobotMovement {
 	 */
 	public RobotMovement(TransformCoords transformCoords) {
 		this.transformCoords = transformCoords;
+		setQuantizationStep(10d);
 	}
 	
 	/**
-	 *  Setter for the neutralPosition.
-	 *  Expects pose-matrix relative to workspace and sets pose-matrix relative
+	 *  Setter for the neutralPosition of the cutter-robots end-effector.
+	 *  Expects homogeneous position-vector relative to workspace and sets position vector relative
 	 *  to cutter-robot coordinate-system.
-	 * @param homPoseMatrix4x4 contains homogeneous pose matrix of the neutral Position
+	 * @param homPosVector4x1 contains homogeneous position vector with the neutral Position
 	 * 						   relative to workspace-coordinate-system
 	 */
-	protected void setNeutralPosition(RealMatrix homPoseMatrix4x4) {
-		//TODO: for Cutter-Tool
+	protected void setNeutralPosition(RealVector homPosVector4x1) {
+		this.neutralPosition = transformCoords.getTrajectoryMatrixForCuttersEndeffector(homPosVector4x1).getColumnVector(3);
 	}
 	
-	protected void setQuantizationStep(double stepValue) {
-		if(1d < stepValue && stepValue > 100d) throw new IllegalArgumentException("quantizationStep must have a value between 1 and 100 mm");
-		this.quantizationStep = stepValue;
+	/**
+	 *  Setter for the auxiliaryPosition of the cutter-robots end-effector.
+	 *  Expects homogeneous position-vector relative to workspace and sets position vector relative
+	 *  to cutter-robot coordinate-system.
+	 * @param homPosVector4x1 contains homogeneous position vector with the auxiliary position
+	 * 						   relative to workspace-coordinate-system
+	 */
+	protected void setAuxiliaryPosition(RealVector homPosVector4x1) {
+		this.auxiliaryPosition = transformCoords.getTrajectoryMatrixForCuttersEndeffector(homPosVector4x1).getColumnVector(3);
+	}
+	
+	
+	//=======MOVEMENT-LOGIC======
+	
+	protected boolean moveStraightP2P(RealMatrix startpose, RealMatrix endpose) {
+		//TODO
+		return true;
 	}
 	
 	protected boolean moveToNeutralPosition() {
@@ -74,10 +92,39 @@ public class RobotMovement {
 		return true;
 	}
 	
-	protected boolean moveStraightP2P(RealMatrix startpose, RealMatrix endpose) {
-		//TODO
-		return true;
+	
+	//=========TRAJECTORY========
+	
+	/**
+	 * Calculates the points on a trajectory that are being passed on to the robot to move to.
+	 * @param 	homStartPos homogeneous RealVector containing start position
+	 * @param 	homEndPos homogeneous RealVector containing end position
+	 * @return 	ArrayList with RealVectors containing the points on the trajectory. The
+	 * 			start position is contained in the first element, and the end position in
+	 * 			the last element of the list.
+	 */
+	private ArrayList<RealVector> calcP2PTrajectoryForStraight(RealVector homStartPos, RealVector homEndPos){
+		//generating vector
+		RealVector directionVector = homEndPos.getSubVector(0, 3).subtract(homStartPos.getSubVector(0, 3));
+		//norm vector according to the quantizationStep value
+		directionVector.mapDivideToSelf(directionVector.getNorm());
+		directionVector.mapMultiplyToSelf(this.quantizationStep);
+		//TODO: FINISH METHOD
 	}
+	
+	/**
+	 * Sets the discretization value for the trajectory-calculations.
+	 * Method is called in constructor of RobotMovement.
+	 * @param stepValue
+	 */
+	//TODO: Maybe add an option the the cutting menu to manually set this value.
+	private void setQuantizationStep(double stepValue) {
+		if(1d < stepValue && stepValue > 100d) throw new IllegalArgumentException("quantizationStep must have a value between 1 and 100 mm");
+		this.quantizationStep = stepValue;
+	}
+	
+	
+	//=======COMMUNICATION=======
 	
 	/**
 	 * Sets the pose of an robot specified in a 3x4 or 4x4 homogeneous matrix.

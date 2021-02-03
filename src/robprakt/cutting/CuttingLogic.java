@@ -1,6 +1,7 @@
 package robprakt.cutting;
 
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
+import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
 
@@ -29,10 +30,34 @@ public class CuttingLogic {
 	private static boolean isCuttingActive = false;
 	//TODO: muss beim Start auf true und beim Ende auf false gesetzt werden
 	
+	/**
+	 * The radius of the styrofoam cylinder in millimeters.
+	 * Currently assuming to have 200mm for the radius.
+	 */
+	private final double radiusStyroCylinder = 200;
+	
+	/**
+	 * The height of the styrofoam cylinder in millimeters.
+	 * Currently assuming to have 400mm for the height.
+	 */
+	private final double heightStyroCylinder = 400;
+	
+	/**
+	 * The height of the styrofoam holder in millimeters.
+	 * Currently assuming to have 13mm as a radius.
+	 */
+	//TODO: Möglicherweise muss man noch einen weiteren Offset definieren, falls das Endeffektorkoordinatensystem
+	//TODO: nicht so wie derzeit erwartet auf der Flanschoberfläche liegt, sondern noch verschobnen ist.
+	//TODO: Genau genommen muss man den Offset von der Lage des Workspaces abhängig machen, allerdings 
+	//TODO: sind das Endeffektorkoordinatensystem und das Workspacekoordinatensystem derzeit von der Position her identisch.
+	private final double heightStyroHolder = 13;
+	
 	
 	//===========================
 	//==========METHODS==========
 	//===========================
+	
+	//===========SETUP===========
 	
 	/**
 	 * Constructor of CuttingLogic creates TransformCoords and RobotMovement instances.
@@ -42,7 +67,46 @@ public class CuttingLogic {
 	public CuttingLogic(TCPClient clientR1, TCPClient clientR2) {
 		this.transformCoords = new TransformCoords(clientR1, clientR2);
 		this.robotMovement = new RobotMovement(transformCoords);
+		setNeutralPosition();
+		setAuxiliaryPosition();
 	}
+	
+	/**
+	 * Calculates the neutral position of the cutter-robots end-effector
+	 * and saves it in robotMovement.
+	 * Is being called in constructor of CuttingLogic.
+	 */
+	private void setNeutralPosition() {
+		double offset = 100; // offset from the styrofoam cylinder
+		//defining neutral position relative to workspace
+		double xValue = (-1d)*(this.radiusStyroCylinder + offset);
+		double yValue = (-1d)*(this.radiusStyroCylinder + offset);
+		double zValue = this.heightStyroHolder + this.heightStyroCylinder + offset;
+		//creating vector relative to workspace
+		RealVector neutralPositionVector = new ArrayRealVector(new double[] {xValue, yValue, zValue, 1});
+		//saving neutral position in robotMovement
+		robotMovement.setNeutralPosition(neutralPositionVector);
+		}
+	
+	/**
+	 * Calculates the auxiliary position of the cutter-robots end-effector
+	 * and saves it in robotMovement.
+	 * Is being called in constructor of CuttingLogic.
+	 */
+	private void setAuxiliaryPosition() {
+		double offset = 100; // offset from the styrofoam cylinder
+		//defining neutral position relative to workspace
+		double xValue = (-1d)*(this.radiusStyroCylinder + offset);
+		double yValue = this.radiusStyroCylinder + offset;
+		double zValue = this.heightStyroHolder + this.heightStyroCylinder + offset;
+		//creating vector relative to workspace
+		RealVector auxiliaryPositionVector = new ArrayRealVector(new double[] {xValue, yValue, zValue, 1});
+		//saving neutral position in robotMovement
+		robotMovement.setAuxiliaryPosition(auxiliaryPositionVector);
+		}
+	
+
+	//==========CUTTING==========
 	
 	/**
 	 * Starts the cutting process.

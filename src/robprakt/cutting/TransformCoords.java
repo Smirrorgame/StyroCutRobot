@@ -281,7 +281,7 @@ public class TransformCoords {
 	/**
 	 * Calculates RealMatrix ready to send to cutter-robot, so the cutter-robots end-effector moves in a way, that the tool
 	 * moves to the specified point in the workspace.
-	 * @param homPosVec homogeneous RealVector containing position x,y,z relative to workspace
+	 * @param 	homPosVec homogeneous RealVector containing position x,y,z relative to workspace
 	 * @return 	RealMatrix containing homogeneous RealMatrix contains pose matrix relative to cutter-robot, so that the tool moves
 	 * 			to the specified position (homPosVec).
 	 */
