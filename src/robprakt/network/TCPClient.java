@@ -100,5 +100,14 @@ public class TCPClient extends NetEntity {
 	@Override
 	public boolean isClosed() {
 		return socket==null || socket.isClosed();
-	}	
+	}
+	
+	/**
+	 * Checks if clients are equal.
+	 * @return true if clients are equal and false they are not.
+	 */
+	public boolean isEqual(TCPClient client) {
+		if(((client.ip).equals(this.ip)) && (client.port == this.port)) return true;
+		return false;
+	}
 }

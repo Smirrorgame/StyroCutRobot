@@ -65,9 +65,10 @@ public class TransformCoords {
 	
 	/**
 	 * Orientation of the cutter-tool (the cutter) relative to cutter-robot's coordinate system.
+	 * Used in RobotMovement.
 	 */
 	//TODO: Schneideklinge sollte parallel zur x-Achse des Schneideroboters sein.
-	private final RealMatrix standardCutterToolOrientation =
+	protected static final RealMatrix standardCutterToolOrientation =
 		new Array2DRowRealMatrix(new double[][] {
 			{0d,0d,1d},
 			{0d,1d,0d},
@@ -88,12 +89,13 @@ public class TransformCoords {
 	 * object is positioned in the workspace) relative to cutter-robot.
 	 * Used to calculate the transformation between holder-robot's end-effector
 	 * and the workspace-coordinate-system.
+	 * Used in RobotMovement.
 	 */
 	//TODO: Die Orientierung des Endeffektors ist hardcoded. Ggf. ist sie fehlerhaft.
 	//TODO: Die Position und Orientierung des Endeffektorkoordinatensystems ist bzgl. des letzten
 	//TODO: Roboterarmgliedes nicht bekannt. Es wurde angenommen, der Ursprung des Systems auf der Flansch-
 	//TODO: oberfläche liegt und die z-Achse deckungsgleich mit der z-Achse des letzten Gelenks ist.
-	private static final RealMatrix rotPartOfHolderRobotsEndeffectorDefaultPoseRelCutterRobot =
+	protected static final RealMatrix rotPartOfHolderRobotsEndeffectorDefaultPoseRelCutterRobot =
 		new Array2DRowRealMatrix(new double[][] {
 													{1d,0d,0d},
 													{0d,1d,0d},
@@ -338,7 +340,7 @@ public class TransformCoords {
 	 * @return 	currentCutterRobotEndeffectorPose RealMatrix containing homogeneous pose data of the cutter-robot's end-effector.
 	 * 			relative to cutter-robot's coordinate-system
 	 */
-	private RealMatrix measureCutterRobotPose() {
+	protected RealMatrix measureCutterRobotPose() {
 		send("GetPositionHomRowWise", this.clientR1);
 		return getHomRealMatrix(response(this.clientR1));
 	}
@@ -348,7 +350,7 @@ public class TransformCoords {
 	 * @return 	currentHolderRobotEndeffectorPose RealMatrix containing homogeneous pose data of the holder-robot's end-effector.
 	 * 			relative to holder-robot's coordinate-system
 	 */
-	private RealMatrix measureHolderRobotPose() {
+	protected RealMatrix measureHolderRobotPose() {
 		send("GetPositionHomRowWise", this.clientR2);
 		return getHomRealMatrix(response(this.clientR2));
 	}

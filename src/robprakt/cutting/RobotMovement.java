@@ -2,6 +2,7 @@ package robprakt.cutting;
 
 import java.util.ArrayList;
 
+import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
 
@@ -19,13 +20,13 @@ public class RobotMovement {
 	
 	/**
 	 * neutralPosition is a homogeneous vector containing neutral position of cutter-robot
-	 * relative to cutter-robot
+	 * relative to cutter-robot (tool-offset already considered)
 	 */
 	private RealVector neutralPosition;
 	
 	/**
 	 * auxiliaryPosition is a homogeneous vector containing an auxiliary position of cutter-robot
-	 * relative to cutter-robot
+	 * relative to cutter-robot (tool-offset already considered)
 	 */
 	private RealVector auxiliaryPosition;
 	
@@ -77,19 +78,95 @@ public class RobotMovement {
 	
 	//=======MOVEMENT-LOGIC======
 	
-	protected boolean moveStraightP2P(RealMatrix startpose, RealMatrix endpose) {
-		//TODO
-		return true;
+	/**
+	 * Moves cutter-robots end-effector from a start-position to an end-position.
+	 * @param startPosition (homogeneous) relative to workspace
+	 * @param endPosition (homogeneous) relative to workspace
+	 */
+	protected void moveCutterP2P(RealVector startPosition, RealVector endPosition) {
+		RealVector startPos = transformCoords.getTrajectoryMatrixForCuttersEndeffector(startPosition).getColumnVector(3);
+		RealVector endPos = transformCoords.getTrajectoryMatrixForCuttersEndeffector(endPosition).getColumnVector(3);
+		this.movementHandler(	this.calcP2PTrajectoryForStraight(startPos, endPos)
+								,this.transformCoords.getClientR1());
 	}
 	
-	protected boolean moveToNeutralPosition() {
-		//TODO
-		return true;
+	/**
+	 * Moves cutter-robots end-effector from the current position to the neutral position.
+	 */
+	protected void moveToNeutralPosition() {
+		//get current position (homogeneous) of cutter-robots end-effector
+		RealVector currentPosition = this.transformCoords.measureCutterRobotPose().getColumnVector(3);
+		this.movementHandler(	this.calcP2PTrajectoryForStraight(currentPosition, this.neutralPosition)
+								,this.transformCoords.getClientR1());
 	}
 	
-	protected boolean moveToAuxiliaryPosition() {
-		//TODO
-		return true;
+	/**
+	 * Moves cutter-robots end-effector from the current position to the auxiliary position.
+	 */
+	protected void moveToAuxiliaryPosition() {
+		//get current position (homogeneous) of cutter-robots end-effector
+		RealVector currentPosition = this.transformCoords.measureCutterRobotPose().getColumnVector(3);
+		this.movementHandler(	this.calcP2PTrajectoryForStraight(currentPosition, this.auxiliaryPosition)
+								,this.transformCoords.getClientR1());
+	}
+	
+	/**
+	 * Handles gradually moving the robot from point to point.
+	 * @param positions to move to, which define a trajectory
+	 * @param client for identifying which robot to communicate with
+	 */
+	private void movementHandler(ArrayList<RealVector> positions,TCPClient client) {
+		RealMatrix poseMatrix3x4 = new Array2DRowRealMatrix(3,4);
+		//setting the orientation of the end-effector depending on robot-type
+		RealMatrix rotMat = (client.isEqual(this.transformCoords.getClientR1()))
+				? TransformCoords.standardCutterToolOrientation
+				: TransformCoords.rotPartOfHolderRobotsEndeffectorDefaultPoseRelCutterRobot;
+		poseMatrix3x4.setSubMatrix(rotMat.getData(), 0, 0);
+		//moving to each point with a certain precision
+		for(RealVector pos : positions) {
+			poseMatrix3x4.setColumnVector(3, pos);
+			this.moveMinChange(poseMatrix3x4, client);
+			this.comparePoses(poseMatrix3x4, client);
+		}
+	}
+	
+	/**
+	 * Compares current pose matrix of a robot to the goal pose matrix.
+	 * Program stays in this algorithm as long as the deviation to the goal pose
+	 * is smaller than a defined threshold.
+	 * @param poseMatrix3x4 goal-pose-matrix 3x4
+	 * @param client used for identifying which robot to communicate with
+	 */
+	private void comparePoses(RealMatrix poseMatrix3x4, TCPClient client) {
+		//defining deviation for the stop criterion
+		double deviation = 0.1; //TODO: Abweichung ggf. vergrößern oder verringern
+		double actualDeviation = this.quantizationStep; //setting 
+		while(actualDeviation > deviation) {
+			RealMatrix currentPose = client.isEqual(this.transformCoords.getClientR1()) ?
+			this.transformCoords.measureCutterRobotPose().getSubMatrix(0, 0, 2, 3)
+			: this.transformCoords.measureHolderRobotPose().getSubMatrix(0, 0, 2, 3);
+			RealMatrix deviationPoseMatrix = poseMatrix3x4.subtract(currentPose);
+			//get maximum deviation
+			actualDeviation = this.maxDeviation(deviationPoseMatrix);
+		}
+	}
+	
+	/**
+	 * Returns greatest double value (according to amount) of a 3x4 matrix.
+	 * @param deviationPoseMatrix3x4
+	 * @return maxDeviation maximum deviation found in matrix
+	 */
+	private double maxDeviation(RealMatrix deviationPoseMatrix3x4) {
+		//TODO: bestenfalls sollte hier eine TimeOutException hinzugefügt werden.
+		double maxDeviation = 0;
+		for(int row = 0; row < 3; row++) {
+			for(int col = 0; col < 4; col++) {
+				//get according to amount the greatest value of deviationPoseMatrix
+				double nextValue = Math.abs(deviationPoseMatrix3x4.getEntry(row, col));
+				maxDeviation = Math.max(maxDeviation, nextValue);
+			}
+		}
+		return maxDeviation;
 	}
 	
 	
@@ -97,19 +174,38 @@ public class RobotMovement {
 	
 	/**
 	 * Calculates the points on a trajectory that are being passed on to the robot to move to.
-	 * @param 	homStartPos homogeneous RealVector containing start position
-	 * @param 	homEndPos homogeneous RealVector containing end position
-	 * @return 	ArrayList with RealVectors containing the points on the trajectory. The
-	 * 			start position is contained in the first element, and the end position in
-	 * 			the last element of the list.
+	 * @param 	homStartPos homogeneous RealVector containing start position relative to cutter-robot
+	 * @param 	homEndPos homogeneous RealVector containing end position relative to cutter-robot
+	 * @return 	ArrayList with RealVectors containing the points (NOT homogeneous) relative to cutter-robot
+	 * 			on the trajectory. The start position is the first element,
+	 * 			and the end position is the last element of the list.
 	 */
 	private ArrayList<RealVector> calcP2PTrajectoryForStraight(RealVector homStartPos, RealVector homEndPos){
 		//generating vector
 		RealVector directionVector = homEndPos.getSubVector(0, 3).subtract(homStartPos.getSubVector(0, 3));
+		//saving length/norm of vector, so later it can be used as stop criterion
+		double distanceStartToEnd = directionVector.getSubVector(0, 3).getNorm();
 		//norm vector according to the quantizationStep value
 		directionVector.mapDivideToSelf(directionVector.getNorm());
 		directionVector.mapMultiplyToSelf(this.quantizationStep);
-		//TODO: FINISH METHOD
+		
+		//calculate trajectory-points
+		ArrayList<RealVector> trajectoryPoints = new ArrayList<RealVector>();
+		//setting start position as first element of list
+		trajectoryPoints.add(homStartPos.getSubVector(0, 3));
+		RealVector currentPoint = homStartPos.getSubVector(0, 3);
+		double currentLength = 0;
+		while(currentLength < distanceStartToEnd) {
+			trajectoryPoints.add(currentPoint);
+			//calculate positions based on the last position in the list
+			currentPoint = trajectoryPoints.get(trajectoryPoints.size() - 1).add(directionVector);
+			//update length status (distance between start and current position)
+			currentLength = currentLength + this.quantizationStep;
+		}
+		//adding end position as last element of list
+		trajectoryPoints.add(homEndPos.getSubVector(0, 3));
+		
+		return trajectoryPoints;
 	}
 	
 	/**
