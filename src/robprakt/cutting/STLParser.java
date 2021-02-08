@@ -10,6 +10,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.StringTokenizer;
 
@@ -83,6 +85,29 @@ public class STLParser {
 		} else {
 			mesh = readBinary(allBytes);
 		}
+		
+		Collections.sort(mesh, new Comparator<Triangle>() {
+			
+			@Override
+			public int compare(Triangle o1, Triangle o2) {
+				Vector3D[] o1V = o1.getVertices();
+				Vector3D[] o2V = o2.getVertices();
+				double maxo1 = Double.NEGATIVE_INFINITY;
+				double maxo2 = Double.NEGATIVE_INFINITY;
+				for(int i=0; i<3;i++) {
+					double o1z = o1V[i].getZ();
+					double o2z = o2V[i].getZ();
+					if(o1z>=maxo1) maxo1 = o1z;
+					if(o2z>=maxo2) maxo2 = o2z;
+				}
+				
+				int ret = 0;
+				if(maxo1>maxo2) return -1;
+				else if(maxo1<maxo2) return 1;
+				else return 0;
+			}
+		});
+		
 		return mesh;
 	}
 		

@@ -18,6 +18,10 @@ public class Triangle {
 		this.normal = Vector3D.crossProduct(edge1, edge2).normalize();
 	}
 	
+	public Vector3D[] getVertices() {
+		return this.vertices;
+	}
+	
 	@Override
 	public String toString() {
 		String s = "";
