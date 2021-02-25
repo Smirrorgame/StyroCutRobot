@@ -6,7 +6,8 @@ Für die Kalibrierung der Roboter wird ein Polaris Trackingsystem genutzt:
 ## Kalibrierung: QR24-Algorithmus
 Die Roboter müssen untereinander kalibriert werden, damit wir wissen, wo sie sich relativ zueinander befinden.
 Wir nutzen zur Kalibrierung der Roboter den QR24-Algorithmus aus folgendem Paper von Prof. Ernst:<br>
-[Non-orthogonal tool/flange and robot/world calibration](https://www.rob.uni-luebeck.de/~bruder/robprakt/Ernst,%20Richter,%20Matth%c3%a4us%20-%20Non-orthogonal%20tool-flange%20and%20robot-world%20calibration.pdf)
+[Non-orthogonal tool/flange and robot/world calibration](https://www.rob.uni-luebeck.de/~bruder/robprakt/Ernst,%20Richter,%20Matth%c3%a4us%20-%20Non-orthogonal%20tool-flange%20and%20robot-world%20calibration.pdf)<br><br>
+In unserem separaten Programm [QR24-Calibration](https://github.com/Smirrorgame/QR24-Calibration) ist der QR24-Kalibrierungs-Algorithmus noch einmal separat implementiert. Mit dem Programm kann man einen Satz an gemessenen Daten/Matrizen aus zwei Dateien einlesen und anhand dieser Daten die Kalibrierungsmatrizen berechnen und ausgeben lassen.
 
 ## Import in Eclipse
   1. In Eclipse mittels "Import existing Project into workspace" importieren.
