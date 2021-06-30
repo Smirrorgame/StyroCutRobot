@@ -13,13 +13,20 @@ public class Triangle {
 		this.vertices[1] = v2;
 		this.vertices[2] = v3;
 		
+		//Calculating normal of the triangle, assuming, that the order of the vertices is given for negative orientation.
+		//Vertices given: A,B,C
+		//normal = AB*BC
 		Vector3D edge1 = this.vertices[1].subtract(this.vertices[0]);
-		Vector3D edge2 = this.vertices[2].subtract(this.vertices[0]);
+		Vector3D edge2 = this.vertices[2].subtract(this.vertices[1]);
 		this.normal = Vector3D.crossProduct(edge1, edge2).normalize();
 	}
 	
 	public Vector3D[] getVertices() {
 		return this.vertices;
+	}
+	
+	public Vector3D getNormal() {
+		return this.normal;
 	}
 	
 	@Override

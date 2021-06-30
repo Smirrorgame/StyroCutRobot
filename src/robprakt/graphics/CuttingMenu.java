@@ -72,13 +72,6 @@ public class CuttingMenu extends JPanel{
 	private Controller controller;
 	
 	/**
-	 * Holds the cutting-logic
-	 */
-	private CuttingLogic cuttingLogic;
-	//TODO: Ist es überhaupt notwendig cuttingLogic in CuttingMenu zu speichern?
-	//		Reicht nicht auch eine methodeninterne Speicherung. siehe ActionListener of START CUTTING
-	
-	/**
 	 * Create the frame.
 	 */
 	public CuttingMenu(Controller controller) {
@@ -192,7 +185,7 @@ public class CuttingMenu extends JPanel{
 				
 				// check if there is already a cutting process running, if so the START-CUTTING button is disabled
 				if(!CuttingLogic.isCuttingActive()) {
-					cuttingLogic = new CuttingLogic(clientR1,clientR2);
+					CuttingLogic cuttingLogic = new CuttingLogic(clientR1,clientR2);
 					try {
 						cuttingLogic.cut();
 					} catch (Exception e1) {
