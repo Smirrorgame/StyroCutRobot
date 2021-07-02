@@ -4,8 +4,6 @@ import java.util.ArrayList;
 
 import org.apache.commons.math3.geometry.euclidean.threed.Line;
 import org.apache.commons.math3.geometry.euclidean.threed.Plane;
-import org.apache.commons.math3.geometry.euclidean.threed.Rotation;
-import org.apache.commons.math3.geometry.euclidean.threed.RotationConvention;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
@@ -40,10 +38,17 @@ public class CuttingLogic {
 	
 	/**
 	 * neutralPositionCutterRobot used for trajectory calculations
-	 * contains position of neutral Position for cutting tool in homegeneous coordinates
+	 * contains position of neutral position for cutting tool in homogeneous coordinates
 	 * relative to workspace (is being set in constructor)
 	 */
 	private RealVector neutralPositionCutterRobot;
+	
+	/**
+	 * auxiliaryPositionCutterRobot used for trajectory calculations
+	 * contains position of neutral position for cutting tool in homogeneous coordinates
+	 * relative to workspace (is being set in constructor)
+	 */
+	private RealVector auxiliaryPositionCutterRobot;
 	
 	/**
 	 * The radius of the styrofoam cylinder in millimeters.
@@ -97,9 +102,10 @@ public class CuttingLogic {
 	 * @param clientR1 client for connecting to cutter-robot
 	 * @param clientR2 client for connecting to holder-robot
 	 */
-	public CuttingLogic(TCPClient clientR1, TCPClient clientR2) {
+	public CuttingLogic(TCPClient clientR1, TCPClient clientR2, ArrayList<Triangle> sortedTriangleList) {
 		this.transformCoords = new TransformCoords(clientR1, clientR2);
 		this.robotMovement = new RobotMovement(transformCoords);
+		this.triangles = sortedTriangleList;
 		setNeutralPosition();
 		setAuxiliaryPosition();
 	}
@@ -136,6 +142,8 @@ public class CuttingLogic {
 		double zValue = this.heightStyroHolder + this.heightStyroCylinder + offset;
 		//creating vector relative to workspace
 		RealVector auxiliaryPositionVector = new ArrayRealVector(new double[] {xValue, yValue, zValue, 1});
+		//saving auxiliary position relative to workspace in CuttingLogic
+		this.auxiliaryPositionCutterRobot = auxiliaryPositionVector;
 		//saving neutral position in robotMovement
 		robotMovement.setAuxiliaryPosition(auxiliaryPositionVector);
 		}
@@ -152,7 +160,7 @@ public class CuttingLogic {
 	 */
 	public void cut() throws Exception {
 		//set cutting status to active
-		this.isCuttingActive = true;
+		CuttingLogic.isCuttingActive = true;
 		
 		//move robots into initial position
 		moveHolderRobotToDefaultPose();
@@ -201,9 +209,9 @@ public class CuttingLogic {
 			//
 			//EXECUTE FIRST CUT
 			//
-			
-			//move from Neutral-Position to startPoint of the trajectory
-			robotMovement.moveCutterP2P(this.neutralPositionCutterRobot,vertices[0]);
+
+			//move to start position (maybe it is necessary to first move to auxiliary position)
+			moveToStartPosition(vertices[0]);
 			
 			//cut through styro-foam
 			//start- to mid-point
@@ -246,6 +254,9 @@ public class CuttingLogic {
 			//EXECUTE SECOND CUT
 			//
 			
+			//move to start position (maybe it is necessary to first move to auxiliary position)
+			moveToStartPosition(vertices[0]);
+			
 			//move from Neutral-Position to startPoint of the trajectory
 			robotMovement.moveCutterP2P(this.neutralPositionCutterRobot,vertices[0]);
 			
@@ -264,7 +275,7 @@ public class CuttingLogic {
 		}
 		
 		//set cutting status to not active
-		this.isCuttingActive = false;
+		CuttingLogic.isCuttingActive = false;
 	}
 	
 	/**
@@ -346,6 +357,24 @@ public class CuttingLogic {
 		return 	new Triangle(new Vector3D(rotationMatrix.operate(tr.getVertices()[0].toArray())),
 				new Vector3D(rotationMatrix.operate(tr.getVertices()[1].toArray())),
 				new Vector3D(rotationMatrix.operate(tr.getVertices()[2].toArray())));
+	}
+	
+	/**
+	 * Handles whether to move straight to the start position,
+	 * or first to auxiliary and then to start position
+	 * @param startPosition
+	 */
+	private void moveToStartPosition(RealVector startPosition) {
+		if(!(Math.abs(startPosition.getEntry(1) - this.radiusStyroCylinder) <= 1.0d)) {
+			//if startPosition is on the left or top line
+			//move from Neutral-Position to startPoint of the trajectory in a straight line
+			robotMovement.moveCutterP2P(this.neutralPositionCutterRobot,startPosition);
+		} else {
+			//if startPosition is on the right line
+			//move from Neutral-Position to Auxiliary-Position then to startPoint of the trajectory in two straight lines
+			robotMovement.moveToAuxiliaryPosition();
+			robotMovement.moveCutterP2P(this.auxiliaryPositionCutterRobot,startPosition);
+		}
 	}
 	
 	/**

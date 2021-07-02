@@ -72,6 +72,13 @@ public class CuttingMenu extends JPanel{
 	private Controller controller;
 	
 	/**
+	 * List contains triangles from the STL file, that are describing the model.
+	 * The number of triangles determines the number of cuts to completely cut the object.
+	 */
+	//TODO: Die Triangle müssen nach dem laden hier gespeichert werden.
+	private ArrayList<Triangle> triangles;
+	
+	/**
 	 * Create the frame.
 	 */
 	public CuttingMenu(Controller controller) {
@@ -185,7 +192,7 @@ public class CuttingMenu extends JPanel{
 				
 				// check if there is already a cutting process running, if so the START-CUTTING button is disabled
 				if(!CuttingLogic.isCuttingActive()) {
-					CuttingLogic cuttingLogic = new CuttingLogic(clientR1,clientR2);
+					CuttingLogic cuttingLogic = new CuttingLogic(clientR1,clientR2,triangles);
 					try {
 						cuttingLogic.cut();
 					} catch (Exception e1) {
@@ -217,6 +224,7 @@ public class CuttingMenu extends JPanel{
 				for(Triangle t: triangles) {
 					System.out.println(t);
 				}
+				
 			} catch (IOException e) {
 				System.err.println("Error on reading STL File");
 				e.printStackTrace();
