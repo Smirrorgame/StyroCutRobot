@@ -268,7 +268,7 @@ public class QR24 {
 		// TODO: Falls erwünscht eine Zeitspanne einbauen.
 		String neutralPosition = "MoveMinChangeRowWiseStatus 1.0 0.0 0.0 1000.0 0.0 1.0 0.0 100.0 0.0 0.0 1.0 1000.0 noflip lefty";
 		controller.send(neutralPosition, clientRob);
-		
+		System.out.println("[QR24] NeutralPosition: "+controller.response(clientRob));
 		return true;
 	}
 	
@@ -308,11 +308,19 @@ public class QR24 {
 		RealMatrix Y = getFromW(w.getSubVector(12, 12));
 		RealMatrix X = getFromW(w.getSubVector(0, 12));
 		
-		// orthonormalize the rotational part of the X and Y matrices
-		RealMatrix XRot = new SingularValueDecomposition(getRot(X)).getV();
-		RealMatrix YRot = new SingularValueDecomposition(getRot(Y)).getV();
-		X.setSubMatrix(XRot.getData(), 0, 0);
-		Y.setSubMatrix(YRot.getData(), 0, 0);
+		// orthonormalize rotational part of X-Matrix via SVD
+		SingularValueDecomposition svd = new SingularValueDecomposition(getRot(X));
+		RealMatrix UV_t = svd.getU().multiply(svd.getVT());
+
+		// set new orthonormalized rotational part
+		X.setSubMatrix(UV_t.getData(), 0, 0);
+		
+		//orthonormalize rotational part of Y-Matrix via SVD
+		svd = new SingularValueDecomposition(getRot(Y));
+		UV_t = svd.getU().multiply(svd.getVT());
+		
+		// set new orthonormalized rotational part
+		Y.setSubMatrix(UV_t.getData(), 0, 0);
 		
 		// return the calculated X and Y matrices
 		return new RealMatrix[] {X,Y};
