@@ -187,8 +187,8 @@ public class CuttingMenu extends JPanel{
 				TCPClient clientR2 = controller.getClientR2();
 				if(clientR1 == null || clientR2 == null) throw new NullPointerException(
 						"[CuttingMenu] At least one TCP-Client is not initialized.");
-				if(!controller.send("IsAdept", clientR1) && !controller.send("IsAdept", clientR2)) throw new IllegalStateException(
-						"[CuttingMenu] At least one connection to a robot server is not healthy. Check IP-address and port of connection.");
+		//		if(!controller.send("IsAdept", clientR1) && !controller.send("IsAdept", clientR2)) throw new IllegalStateException(
+		//				"[CuttingMenu] At least one connection to a robot server is not healthy. Check IP-address and port of connection.");
 				
 				// check if there is already a cutting process running, if so the START-CUTTING button is disabled
 				if(!CuttingLogic.isCuttingActive()) {
