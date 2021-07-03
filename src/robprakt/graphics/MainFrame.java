@@ -2,12 +2,15 @@ package robprakt.graphics;
 
 import java.awt.Color;
 import java.awt.Toolkit;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 
 import javax.swing.JFrame;
 import javax.swing.JTabbedPane;
 
 import robCalibration.QR24;
 import robprakt.Constants;
+import robprakt.cutting.RobotMovement;
 import robprakt.cutting.TransformCoords;
 
 public class MainFrame extends JFrame {
@@ -79,6 +82,7 @@ public class MainFrame extends JFrame {
 		cmdMenu = new cmdMenu(controller, this);
 		calibrationMenu = new CalibrationMenu(controller, this, calibration);
 		cuttingMenu = new CuttingMenu(controller);
+		
 		
 		// adding menus to tabbedPane
 		tabbedContentPane.add("Connections",connectionMenu);

@@ -165,8 +165,7 @@ public class CuttingLogic {
 		//move robots into initial position
 		moveHolderRobotToDefaultPose();
 		robotMovement.moveToNeutralPosition();
-		// TODO: Entferne System.out.println("TEST 1");
-		System.out.println("TEST 2");
+		
 		//gradually calculate and execute cuts for each triangle
 		for(int cnt = 0; cnt < this.triangles.size(); cnt++) {
 			Triangle tr = triangles.get(cnt);
@@ -204,20 +203,6 @@ public class CuttingLogic {
 			//rotate Triangle so you can calculate with rotated vertices and rotated normal
 			Triangle rotTr = rotateTriangle(tr,rotationMatrix);
 			
-			System.out.println("Angle: " + angle);
-			//TODO: Tr
-			this.toMatLabVector(tr.getNormal());
-			this.toMatLabVector(tr.getVertices()[0]);
-			this.toMatLabVector(tr.getVertices()[1]);
-			this.toMatLabVector(tr.getVertices()[2]);
-			
-			
-			//TODO: rotTr
-			this.toMatLabVector(rotTr.getNormal());
-			this.toMatLabVector(rotTr.getVertices()[0]);
-			this.toMatLabVector(rotTr.getVertices()[1]);
-			this.toMatLabVector(rotTr.getVertices()[2]);
-			
 			//calculate vertices for trajectory for FIRST CUT
 			RealVector[] vertices = calculateVerticesFirstCut(rotationMatrix, rotTr);
 			
@@ -239,7 +224,7 @@ public class CuttingLogic {
 			//
 			
 			//move to neutral position (potentially over auxiliary-position) 
-			this.moveToNeutralPosition(vertices[2]);
+			this.moveNeutralPosition(vertices[2]);
 			
 			//
 			//PREPARE FOR SECOND CUT
@@ -262,31 +247,28 @@ public class CuttingLogic {
 			//rotate Triangle so you can calculate with rotated vertices and rotated normal
 			rotTr = rotateTriangle(tr,rotationMatrix);
 			
-			//calculate vertices for trajectory for FIRST CUT
-			vertices = calculateVerticesFirstCut(rotationMatrix, rotTr);
+			//calculate vertices for trajectory for FIRST (nope... its 2nd) CUT
+			RealVector[] vertices2 = calculateVerticesFirstCut(rotationMatrix, rotTr);
 			
 			//
 			//EXECUTE SECOND CUT
 			//
 			
 			//move to start position (maybe it is necessary to first move to auxiliary position)
-			moveToStartPosition(vertices[0]);
-			
-			//move from Neutral-Position to startPoint of the trajectory
-			robotMovement.moveCutterP2P(this.neutralPositionCutterRobot,vertices[0]);
+			moveToStartPosition(vertices2[0]);
 			
 			//cut through styro-foam
 			//start- to mid-point
-			robotMovement.moveCutterP2P(vertices[0], vertices[1]);
+			robotMovement.moveCutterP2P(vertices2[0], vertices2[1]);
 			//mid- to end-point
-			robotMovement.moveCutterP2P(vertices[1], vertices[2]);
+			robotMovement.moveCutterP2P(vertices2[1], vertices2[2]);
 			
 			//
 			//PREPARE FOR NEXT CUT
 			//
 			
 			//move to neutral position (potentially over auxiliary-position) 
-			this.moveToNeutralPosition(vertices[2]);
+			this.moveNeutralPosition(vertices2[2]);
 		}
 		
 		//set cutting status to not active
@@ -371,8 +353,6 @@ public class CuttingLogic {
 	 * @return rotated triangle
 	 */
 	private Triangle rotateTriangle(Triangle tr, RealMatrix rotationMatrix) {
-		System.out.println(tr.getVertices()[0]);
-		System.out.println(rotationMatrix.getSubMatrix(0, 2,0,2));
 		return 	new Triangle(new Vector3D(rotationMatrix.getSubMatrix(0, 2,0,2).operate(tr.getVertices()[0].toArray())),
 				new Vector3D(rotationMatrix.getSubMatrix(0, 2,0,2).operate(tr.getVertices()[1].toArray())),
 				new Vector3D(rotationMatrix.getSubMatrix(0, 2,0,2).operate(tr.getVertices()[2].toArray())));
@@ -391,7 +371,7 @@ public class CuttingLogic {
 		} else {
 			//if startPosition is on the right line
 			//move from Neutral-Position to Auxiliary-Position then to startPoint of the trajectory in two straight lines
-			robotMovement.moveToAuxiliaryPosition();
+			robotMovement.moveCutterP2P(this.neutralPositionCutterRobot,this.auxiliaryPositionCutterRobot);
 			robotMovement.moveCutterP2P(this.auxiliaryPositionCutterRobot,startPosition);
 		}
 	}
@@ -427,12 +407,6 @@ public class CuttingLogic {
 		Vector3D intersectLeftLine = plane.intersection(leftLine);
 		Vector3D intersectRightLine = plane.intersection(rightLine);
 		Vector3D intersectTopLine = plane.intersection(topLine);
-		
-		//TODO: überprüfen ob top line null ist
-		System.out.println("intersectTopLine: " + intersectTopLine);
-		System.out.println("intersectLeftLine: " + intersectLeftLine);
-		System.out.println("intersectRightLine: " + intersectRightLine);
-		
 		//Vector3D intersectBottomLine = plane.intersection(bottomLine);
 		
 		//FILTER
@@ -448,10 +422,6 @@ public class CuttingLogic {
 		if(intersectRightLine != null &&!(intersectRightLine.getZ() >= bottomRight.getZ() && intersectRightLine.getZ() <= topRight.getZ())) {
 			intersectRightLine = null; //right-line
 		}
-		
-		System.out.println("intersectTopLine: " + intersectTopLine);
-		System.out.println("intersectLeftLine: " + intersectLeftLine);
-		System.out.println("intersectRightLine: " + intersectRightLine);
 		
 		//start point of the trajectory
 		Vector3D startPoint = null;
@@ -533,16 +503,16 @@ public class CuttingLogic {
 	 * Gets called after each cut through the styro-foam.
 	 * @param lastPosition
 	 */
-	private void moveToNeutralPosition(RealVector lastPosition) {
+	private void moveNeutralPosition(RealVector lastPosition) {
 		//move to neutral position
 		//check if last position of cutter robot was on left or right side
 		if(lastPosition.getEntry(1) < 0) {
 			//y-component is negative --> move straight to neutral
-			robotMovement.moveToNeutralPosition();
+			robotMovement.moveCutterP2P(lastPosition,this.neutralPositionCutterRobot);
 		} else {
 			//y-component is positive --> move to auxiliary and then to neutral position
-			robotMovement.moveToAuxiliaryPosition();
-			robotMovement.moveToNeutralPosition();
+			robotMovement.moveCutterP2P(lastPosition, this.auxiliaryPositionCutterRobot);
+			robotMovement.moveCutterP2P(this.auxiliaryPositionCutterRobot,this.neutralPositionCutterRobot);
 		}
 	}
 	public static void main(String[] args) {

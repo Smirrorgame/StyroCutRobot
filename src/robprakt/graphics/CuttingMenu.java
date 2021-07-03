@@ -28,6 +28,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 import robprakt.Constants;
 import robprakt.cutting.CuttingLogic;
+import robprakt.cutting.RobotMovement;
 import robprakt.cutting.STLParser;
 import robprakt.cutting.Triangle;
 import robprakt.network.TCPClient;
@@ -45,6 +46,7 @@ public class CuttingMenu extends JPanel{
 	 */
 	private JPanel row1;
 	private JPanel row2;
+	private JPanel row3;
 	
 	/**
 	 * command input text field for cutter-robot
@@ -60,6 +62,21 @@ public class CuttingMenu extends JPanel{
 	 * button for starting cutting process
 	 */
 	private JButton startCutting;
+	
+	/**
+	 * button for starting controls of manual simulation
+	 */
+	private JButton manualSimulationNextStep;
+	
+	/**
+	 * button for starting controls of manual simulation
+	 */
+	private JButton manualSimulationStepBack;
+	
+	/**
+	 * if manual simulation is active, then this is true
+	 */
+	private boolean manualSimulationIsActive; //TODO: überflüssig
 	
 	/**
 	 * response text field of cutter-robot
@@ -78,6 +95,8 @@ public class CuttingMenu extends JPanel{
 	//TODO: Die Triangle müssen nach dem laden hier gespeichert werden.
 	private ArrayList<Triangle> triangles;
 	
+	private int currentStepInManualSimulation = -1;
+	
 	/**
 	 * Create the frame.
 	 */
@@ -93,9 +112,11 @@ public class CuttingMenu extends JPanel{
 		// generating JPanel with GridBagLayout
 		row1 = new JPanel(new GridBagLayout());
 		row2 = new JPanel(new GridBagLayout());
+		row3 = new JPanel(new GridBagLayout());
 		// adding rows to cmdPane
 		add(row1);
 		add(row2);
+		add(row3);
 		
 		
 		// defining dimensions and constraints of the components
@@ -129,6 +150,22 @@ public class CuttingMenu extends JPanel{
 		startCuttingGBS.anchor = GridBagConstraints.CENTER;
 		startCuttingGBS.insets = new Insets(10,10,10,10);
 		
+		// for activateSimulationControl button
+		Dimension activateSimulationControlDim = new Dimension(Constants.mainFrameWidth*6/20,Constants.mainFrameHeight/20);
+		GridBagConstraints activateSimulationControlGBS = new GridBagConstraints();
+		activateSimulationControlGBS.gridx = 0;
+		activateSimulationControlGBS.gridy = 0;
+		activateSimulationControlGBS.anchor = GridBagConstraints.CENTER;
+		activateSimulationControlGBS.insets = new Insets(10,10,10,10);
+		
+		Dimension manualSimulationStepBackDim = new Dimension(Constants.mainFrameWidth*6/20,Constants.mainFrameHeight/20);
+		GridBagConstraints manualSimulationStepBackGBS = new GridBagConstraints();
+		manualSimulationStepBackGBS.gridx = 1;
+		manualSimulationStepBackGBS.gridy = 0;
+		manualSimulationStepBackGBS.anchor = GridBagConstraints.CENTER;
+		manualSimulationStepBackGBS.insets = new Insets(10,10,10,10);
+		
+		
 		
 		// creating text fields
 		// cutter-robot
@@ -156,6 +193,16 @@ public class CuttingMenu extends JPanel{
 		startCutting.setPreferredSize(startCuttingDim);
 		startCutting.setFont(new Font("Arial", Font.BOLD, 11));
 		
+		// creating activateManualSimilation button
+		manualSimulationNextStep = new JButton("SIMULATION NEXT STEP");
+		manualSimulationNextStep.setPreferredSize(activateSimulationControlDim);
+		manualSimulationNextStep.setFont(new Font("Arial", Font.BOLD, 11));
+		
+		
+		manualSimulationStepBack = new JButton("SIMULATION STEP BACK");
+		manualSimulationStepBack.setPreferredSize(manualSimulationStepBackDim);
+		manualSimulationStepBack.setFont(new Font("Arial", Font.BOLD, 11));
+		
 		//adding components to rows
 		//text fields for commands
 		row1.add(cmdTxtR1,cmdTxtGBS1);
@@ -166,6 +213,11 @@ public class CuttingMenu extends JPanel{
 		
 		//startCutting button
 		row2.add(startCutting,startCuttingGBS);
+		
+		//manualSimulationNextStep
+		row3.add(manualSimulationNextStep,activateSimulationControlGBS);
+		
+		row3.add(manualSimulationStepBack,manualSimulationStepBackGBS);
 		
 		//#########################
 		//########LISTENERS########
@@ -194,8 +246,6 @@ public class CuttingMenu extends JPanel{
 				if(!CuttingLogic.isCuttingActive()) {
 					CuttingLogic cuttingLogic = new CuttingLogic(clientR1,clientR2,triangles);
 					try {
-						// TODO: Entferne System.out.println("TEST 1");
-						System.out.println("TEST 1");
 						cuttingLogic.cut();
 					} catch (Exception e1) {
 						e1.printStackTrace();
@@ -204,9 +254,55 @@ public class CuttingMenu extends JPanel{
 			}
 		};
 		
+		/**
+		 * ActionListener for manual simulation button
+		 * sets manualSimulationIsActive to true
+		 */
+		ActionListener actionListenerManualSimulationStatus = new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if(!CuttingLogic.isCuttingActive()) {
+					manualSimulationIsActive = true;
+			
+					if(!CuttingLogic.isCuttingActive())
+					{
+						manualSimulationIsActive = true;
+			        	if(false) currentStepInManualSimulation--;
+			        	if(currentStepInManualSimulation < RobotMovement.commandsDuringCutting.size()) currentStepInManualSimulation++;
+			        	//should only be executed, when cutting process has been finished
+					    controller.send(RobotMovement.commandsDuringCutting.get(currentStepInManualSimulation), RobotMovement.clientForEachCommand.get(currentStepInManualSimulation));
+					    controller.response(RobotMovement.clientForEachCommand.get(currentStepInManualSimulation));
+					}
+						
+				}
+			}
+		};
+		
+		ActionListener actionListenerManualSimulationStatusDecrease = new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if(!CuttingLogic.isCuttingActive()) {
+					manualSimulationIsActive = true;
+			
+					if(!CuttingLogic.isCuttingActive())
+					{
+						manualSimulationIsActive = true;
+			        	if(currentStepInManualSimulation > 0) currentStepInManualSimulation--;
+			        	
+			        	//should only be executed, when cutting process has been finished
+					    controller.send(RobotMovement.commandsDuringCutting.get(currentStepInManualSimulation), RobotMovement.clientForEachCommand.get(currentStepInManualSimulation));
+					    controller.response(RobotMovement.clientForEachCommand.get(currentStepInManualSimulation));
+					}
+						
+				}
+			}
+		};
+		
 		//add ActionListeners to JButtons
 		sendCmdR1.addActionListener(actionListenerSendCmdR1);
 		startCutting.addActionListener(actionListenerStartCutting);
+		manualSimulationNextStep.addActionListener(actionListenerManualSimulationStatus);
+		manualSimulationStepBack.addActionListener(actionListenerManualSimulationStatusDecrease);
 	}
 	
 	/**

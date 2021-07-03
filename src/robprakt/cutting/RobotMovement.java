@@ -38,6 +38,10 @@ public class RobotMovement {
 	 */
 	private double quantizationStep;
 	
+	//TODO: Nur für die manuell ausführbare Simulation benötigt.
+	public static ArrayList<String> commandsDuringCutting = new ArrayList<String>();
+	public static ArrayList<TCPClient> clientForEachCommand = new ArrayList<TCPClient>();
+	
 	
 	//===========================
 	//==========METHODS==========
@@ -51,7 +55,7 @@ public class RobotMovement {
 	 */
 	public RobotMovement(TransformCoords transformCoords) {
 		this.transformCoords = transformCoords;
-		setQuantizationStep(10d);
+		setQuantizationStep(20d);
 	}
 	
 	/**
@@ -216,7 +220,7 @@ public class RobotMovement {
 	 */
 	//TODO: Maybe add an option the the cutting menu to manually set this value.
 	private void setQuantizationStep(double stepValue) {
-		if(1d < stepValue && stepValue > 100d) throw new IllegalArgumentException("quantizationStep must have a value between 1 and 100 mm");
+		if(!(1d < stepValue && stepValue < 100d)) throw new IllegalArgumentException("quantizationStep must have a value between 1 and 100 mm");
 		this.quantizationStep = stepValue;
 	}
 	
@@ -236,6 +240,11 @@ public class RobotMovement {
 														+ " " + poseMatrix.getEntry(2,0) + " " + poseMatrix.getEntry(2,1) + " " + poseMatrix.getEntry(2,2) + " " + poseMatrix.getEntry(2,3)
 														+ " " + "noflip lefty"; //TODO: ggf. sollte man die Parameter noflip lefty etc. noch sinniger bestimmen.
 		transformCoords.send(command, client);
+		
+		//saving commands when cutting process is active
+		commandsDuringCutting.add(command);
+		clientForEachCommand.add(client);
+		
 		// if the robot accepts the command, it returns true
 		String response = (transformCoords.response(client)).trim(); //TODO: in simulation it is necessary to trim response, cause there are trailing whitespaces
 		return "true".equals(response);
