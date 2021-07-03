@@ -450,6 +450,10 @@ public class CuttingLogic {
 					//only right
 					startPoint = intersectRightLine;
 				}
+				if(intersectLeftLine != null && intersectRightLine != null) {
+					//left and right
+					startPoint = intersectLeftLine;
+				}
 			}
 		}
 		
