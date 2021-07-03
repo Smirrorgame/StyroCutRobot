@@ -294,7 +294,7 @@ public class TransformCoords {
 		RealMatrix currentCutterRobotPose = this.measureCutterRobotPose();
 		RealVector posRelCutRobotEndeffector = this.createInversTransformationMatrix(currentCutterRobotPose).operate(posRelCutRobot);
 		// considering the tool-offset by subtracting the offset from the posRelCutRobotEndeffector
-		RealVector endeffectorPositionRelEndeffector = endeffectorToCutter.getColumnVector(3).getSubVector(0, 3).mapMultiply(-1d).add(posRelCutRobotEndeffector);
+		RealVector endeffectorPositionRelEndeffector = endeffectorToCutter.getColumnVector(3).getSubVector(0, 3).mapMultiply(-1d).add(posRelCutRobotEndeffector.getSubVector(0, 3));
 		// describe calculated end-effector position relative to cutter-robot
 		// set position
 		double x = endeffectorPositionRelEndeffector.getEntry(0);

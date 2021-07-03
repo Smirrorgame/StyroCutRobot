@@ -165,7 +165,8 @@ public class CuttingLogic {
 		//move robots into initial position
 		moveHolderRobotToDefaultPose();
 		robotMovement.moveToNeutralPosition();
-		
+		// TODO: Entferne System.out.println("TEST 1");
+		System.out.println("TEST 2");
 		//gradually calculate and execute cuts for each triangle
 		for(int cnt = 0; cnt < this.triangles.size(); cnt++) {
 			Triangle tr = triangles.get(cnt);
@@ -202,6 +203,20 @@ public class CuttingLogic {
 			
 			//rotate Triangle so you can calculate with rotated vertices and rotated normal
 			Triangle rotTr = rotateTriangle(tr,rotationMatrix);
+			
+			System.out.println("Angle: " + angle);
+			//TODO: Tr
+			this.toMatLabVector(tr.getNormal());
+			this.toMatLabVector(tr.getVertices()[0]);
+			this.toMatLabVector(tr.getVertices()[1]);
+			this.toMatLabVector(tr.getVertices()[2]);
+			
+			
+			//TODO: rotTr
+			this.toMatLabVector(rotTr.getNormal());
+			this.toMatLabVector(rotTr.getVertices()[0]);
+			this.toMatLabVector(rotTr.getVertices()[1]);
+			this.toMatLabVector(rotTr.getVertices()[2]);
 			
 			//calculate vertices for trajectory for FIRST CUT
 			RealVector[] vertices = calculateVerticesFirstCut(rotationMatrix, rotTr);
@@ -306,11 +321,13 @@ public class CuttingLogic {
 		
 		Vector3D normal = tr.getNormal();
 		//check if normal is parallel to z-axis
-		if(Math.abs(normal.getX())<accuracy && Math.abs(normal.getY())<accuracy) {
+		if(!(Math.abs(normal.getX())<accuracy && Math.abs(normal.getY())<accuracy)) {
 			Vector2D negativeYaxis = new Vector2D(0.0d, -1.0d);
 			Vector2D normal2D = new Vector2D(normal.getX(),normal.getY());
-
-			return Vector2D.angle(negativeYaxis, normal2D);
+			
+			//deciding whether the angle is negative by orientation of x-component
+			double sign = normal.getX() <= 0 ? 1.0d : -1.0d;
+			return sign*Vector2D.angle(negativeYaxis, normal2D);
 		}
 		return 0;
 	}
@@ -322,9 +339,9 @@ public class CuttingLogic {
 	 */
 	private RealMatrix calcRotationMatrix(double angle) {
 		return new Array2DRowRealMatrix(new double[][] {
-			{1.0d,0.0d,0.0d,0.0d},
-			{0.0d,Math.cos(angle),-Math.sin(angle),0.0d},
-			{0.0d,Math.sin(angle),Math.cos(angle),0.0d},
+			{Math.cos(angle),-Math.sin(angle),0.0,0.0d},
+			{Math.sin(angle),Math.cos(angle),0.0,0.0d},
+			{0.0d,0.0d,1.0d,0.0d},
 			{0.0d,0.0d,0.0d,1.0d}});
 	}
 	
@@ -354,9 +371,11 @@ public class CuttingLogic {
 	 * @return rotated triangle
 	 */
 	private Triangle rotateTriangle(Triangle tr, RealMatrix rotationMatrix) {
-		return 	new Triangle(new Vector3D(rotationMatrix.operate(tr.getVertices()[0].toArray())),
-				new Vector3D(rotationMatrix.operate(tr.getVertices()[1].toArray())),
-				new Vector3D(rotationMatrix.operate(tr.getVertices()[2].toArray())));
+		System.out.println(tr.getVertices()[0]);
+		System.out.println(rotationMatrix.getSubMatrix(0, 2,0,2));
+		return 	new Triangle(new Vector3D(rotationMatrix.getSubMatrix(0, 2,0,2).operate(tr.getVertices()[0].toArray())),
+				new Vector3D(rotationMatrix.getSubMatrix(0, 2,0,2).operate(tr.getVertices()[1].toArray())),
+				new Vector3D(rotationMatrix.getSubMatrix(0, 2,0,2).operate(tr.getVertices()[2].toArray())));
 	}
 	
 	/**
@@ -408,21 +427,31 @@ public class CuttingLogic {
 		Vector3D intersectLeftLine = plane.intersection(leftLine);
 		Vector3D intersectRightLine = plane.intersection(rightLine);
 		Vector3D intersectTopLine = plane.intersection(topLine);
+		
+		//TODO: überprüfen ob top line null ist
+		System.out.println("intersectTopLine: " + intersectTopLine);
+		System.out.println("intersectLeftLine: " + intersectLeftLine);
+		System.out.println("intersectRightLine: " + intersectRightLine);
+		
 		//Vector3D intersectBottomLine = plane.intersection(bottomLine);
 		
 		//FILTER
 		//identifying intersections which can be used as a start point
 		//filter out only relevant intersections that are positioned directly near the cylinder
 		//if the intersection is not relevant, set it to null
-		if(!(intersectTopLine.getZ() >= topLeft.getY() && intersectTopLine.getZ() <= topRight.getY()) && intersectTopLine != null) {
+		if(intersectTopLine != null && !(intersectTopLine.getY() >= topLeft.getY() && intersectTopLine.getY() <= topRight.getY())) {
 			intersectTopLine = null; //top-line
 		}
-		if(!(intersectLeftLine.getZ() >= bottomLeft.getZ() && intersectLeftLine.getZ() <= topLeft.getZ()) && intersectLeftLine != null) {
+		if(intersectLeftLine != null && !(intersectLeftLine.getZ() >= bottomLeft.getZ() && intersectLeftLine.getZ() <= topLeft.getZ())) {
 			intersectLeftLine = null; //left-line
 		}
-		if(!(intersectRightLine.getZ() >= bottomRight.getZ() && intersectRightLine.getZ() <= topRight.getZ()) && intersectRightLine != null) {
+		if(intersectRightLine != null &&!(intersectRightLine.getZ() >= bottomRight.getZ() && intersectRightLine.getZ() <= topRight.getZ())) {
 			intersectRightLine = null; //right-line
 		}
+		
+		System.out.println("intersectTopLine: " + intersectTopLine);
+		System.out.println("intersectLeftLine: " + intersectLeftLine);
+		System.out.println("intersectRightLine: " + intersectRightLine);
 		
 		//start point of the trajectory
 		Vector3D startPoint = null;
@@ -449,7 +478,7 @@ public class CuttingLogic {
 				}
 				if(intersectLeftLine == null && intersectRightLine != null) {
 					//only right
-					startPoint = intersectLeftLine;
+					startPoint = intersectRightLine;
 				}
 			}
 		}
@@ -489,6 +518,7 @@ public class CuttingLogic {
 		RealVector v0 = new ArrayRealVector(new double[] {0.0d,0.0d,0.0d,1.0d,});
 		RealVector v1 = new ArrayRealVector(new double[] {0.0d,0.0d,0.0d,1.0d,});
 		RealVector v2 = new ArrayRealVector(new double[] {0.0d,0.0d,0.0d,1.0d,});
+		
 		v0.setSubVector(0, new ArrayRealVector(startPoint.toArray()));
 		v1.setSubVector(0, new ArrayRealVector(midPoint.toArray()));
 		v2.setSubVector(0, new ArrayRealVector(endPoint.toArray()));
@@ -514,5 +544,12 @@ public class CuttingLogic {
 			robotMovement.moveToAuxiliaryPosition();
 			robotMovement.moveToNeutralPosition();
 		}
+	}
+	public static void main(String[] args) {
+		Vector3D v = new Vector3D(1.0d,2.0d,3.0d);
+		toMatLabVector(v);
+	}
+	private static void toMatLabVector(Vector3D v) {
+		System.out.println(" = [" + v.getX() + ";" + v.getY() + ";" + v.getZ() + "]");
 	}
 }

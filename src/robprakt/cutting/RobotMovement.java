@@ -6,6 +6,7 @@ import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
 
+import robCalibration.ConsoleTable;
 import robprakt.network.TCPClient;
 
 /**
@@ -143,8 +144,8 @@ public class RobotMovement {
 		double actualDeviation = this.quantizationStep; //setting 
 		while(actualDeviation > deviation) {
 			RealMatrix currentPose = client.isEqual(this.transformCoords.getClientR1()) ?
-			this.transformCoords.measureCutterRobotPose().getSubMatrix(0, 0, 2, 3)
-			: this.transformCoords.measureHolderRobotPose().getSubMatrix(0, 0, 2, 3);
+			this.transformCoords.measureCutterRobotPose().getSubMatrix(0, 2, 0, 3)
+			: this.transformCoords.measureHolderRobotPose().getSubMatrix(0, 2, 0, 3);
 			RealMatrix deviationPoseMatrix = poseMatrix3x4.subtract(currentPose);
 			//get maximum deviation
 			actualDeviation = this.maxDeviation(deviationPoseMatrix);
@@ -236,6 +237,7 @@ public class RobotMovement {
 														+ " " + "noflip lefty"; //TODO: ggf. sollte man die Parameter noflip lefty etc. noch sinniger bestimmen.
 		transformCoords.send(command, client);
 		// if the robot accepts the command, it returns true
-		return "true".equals((transformCoords.response(client)));
+		String response = (transformCoords.response(client)).trim(); //TODO: in simulation it is necessary to trim response, cause there are trailing whitespaces
+		return "true".equals(response);
 	}
 }

@@ -189,11 +189,13 @@ public class CuttingMenu extends JPanel{
 						"[CuttingMenu] At least one TCP-Client is not initialized.");
 		//		if(!controller.send("IsAdept", clientR1) && !controller.send("IsAdept", clientR2)) throw new IllegalStateException(
 		//				"[CuttingMenu] At least one connection to a robot server is not healthy. Check IP-address and port of connection.");
-				
+				//TODO: Beim praktischen Test an den Roboter Servern gerne auskommentieren.
 				// check if there is already a cutting process running, if so the START-CUTTING button is disabled
 				if(!CuttingLogic.isCuttingActive()) {
 					CuttingLogic cuttingLogic = new CuttingLogic(clientR1,clientR2,triangles);
 					try {
+						// TODO: Entferne System.out.println("TEST 1");
+						System.out.println("TEST 1");
 						cuttingLogic.cut();
 					} catch (Exception e1) {
 						e1.printStackTrace();
@@ -212,7 +214,6 @@ public class CuttingMenu extends JPanel{
 	 * @param serverType defines which server to communicate with
 	 */
 	private void getTriangles() {
-		ArrayList<Triangle> triangles;
 		JFileChooser fileChooser = new JFileChooser(new File("."));
 		fileChooser.setLocale(Locale.GERMANY);
 		FileNameExtensionFilter filter = new FileNameExtensionFilter("STL 3D Object Files", "stl");
@@ -220,8 +221,8 @@ public class CuttingMenu extends JPanel{
 		int choice = fileChooser.showOpenDialog(null);
 		if(choice == JFileChooser.APPROVE_OPTION) {
 			try {
-				triangles = (ArrayList<Triangle>) STLParser.parseSTLFile(fileChooser.getSelectedFile().toPath());
-				for(Triangle t: triangles) {
+				this.triangles = (ArrayList<Triangle>) STLParser.parseSTLFile(fileChooser.getSelectedFile().toPath());
+				for(Triangle t: this.triangles) {
 					System.out.println(t);
 				}
 				
