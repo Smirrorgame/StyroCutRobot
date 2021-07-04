@@ -476,7 +476,7 @@ public class CuttingLogic {
 		//end-point is located on left or right line
 		//determining which on which end-point is located by normal of triangle
 		
-		//triangle surface points to the left
+		//triangle's surface points to the left
 		Vector3D endPoint = new Vector3D(midPoint.getX(),-this.radiusStyroCylinder,midPoint.getZ());
 		if (tr.getNormal().getY() > 0) {
 			//triangle surface points to the right

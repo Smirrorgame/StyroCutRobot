@@ -86,6 +86,23 @@ public class STLParser {
 			mesh = readBinary(allBytes);
 		}
 		
+		//remove triangles that are describing the same plane, except for one triangle
+		//can only be used for CONVEX MODELS
+		ArrayList<Triangle> tempList = new ArrayList<Triangle>();
+		for (Triangle tr : mesh) {
+			boolean alreadyExists = false;
+			for (Triangle trTemp : tempList) {
+				if(trTemp.isNormalSimilar(tr)) {
+					alreadyExists = true;
+					break;
+				}
+			}
+			if(!alreadyExists) tempList.add(tr);
+		}
+		mesh = new ArrayList<Triangle>();
+		mesh.addAll(tempList);
+		
+		
 		Collections.sort(mesh, new Comparator<Triangle>() {
 			
 			@Override

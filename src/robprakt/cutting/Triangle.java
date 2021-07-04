@@ -39,5 +39,11 @@ public class Triangle {
 		
 		return s;
 	}
+	
+	public boolean isNormalSimilar(Triangle tr) {
+		double tolerance = 10e-5d;
+		if(Math.abs(this.getNormal().getX()-tr.getNormal().getX()) <= tolerance && Math.abs(this.getNormal().getZ()-tr.getNormal().getZ()) <= tolerance && Math.abs(this.getNormal().getY()-tr.getNormal().getY()) <= tolerance) return true;
+		return false;
+	}
 
 }
