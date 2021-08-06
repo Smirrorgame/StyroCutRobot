@@ -158,20 +158,20 @@ public class connectionMenu extends JPanel {
 		
 		//creating IP fields
 		//cutter-robot
-		ipFieldR1 = new JTextField("localhost");
-		ipFieldR1.setToolTipText("Enter IP-address for CUTTER-ROBOT");
+		ipFieldR1 = new JTextField("localhost:5004");
+		ipFieldR1.setToolTipText("Enter IP-address (and Port) for CUTTER-ROBOT");
 		ipFieldR1.setFont(new Font("Arial", Font.PLAIN, 12));
 		ipFieldR1.setForeground(Color.LIGHT_GRAY);
 		ipFieldR1.setPreferredSize(ipFieldsDim);
 		//holder-robot
-		ipFieldR2 = new JTextField("localhost");
-		ipFieldR2.setToolTipText("Enter IP-address for HOLDER-ROBOT");
+		ipFieldR2 = new JTextField("localhost:5005");
+		ipFieldR2.setToolTipText("Enter IP-address (and Port) for HOLDER-ROBOT");
 		ipFieldR2.setFont(new Font("Arial", Font.PLAIN, 12));
 		ipFieldR2.setForeground(Color.LIGHT_GRAY);
 		ipFieldR2.setPreferredSize(ipFieldsDim);
 		//tracking-system
-		ipFieldTS = new JTextField("localhost");
-		ipFieldTS.setToolTipText("Enter IP-address for TRACKING-SYSTEM");
+		ipFieldTS = new JTextField("localhost:5000");
+		ipFieldTS.setToolTipText("Enter IP-address (and Port) for TRACKING-SYSTEM");
 		ipFieldTS.setFont(new Font("Arial", Font.PLAIN, 12));
 		ipFieldTS.setForeground(Color.LIGHT_GRAY);
 		ipFieldTS.setPreferredSize(ipFieldsDim);
@@ -262,8 +262,12 @@ public class connectionMenu extends JPanel {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				String ip = ipFieldR1.getText();
-				int port = 5005;
+				String[] address = splitAddress(ipFieldR1.getText());
+				int port = Integer.valueOf(address[1]);
+				if(address[1]==null) {
+					port = 5004;
+				}
+				String ip = address[0];
 				if(controller.connect(ip,port, controller.getClientR1())) {
 					// initial robot setup
 					controller.send("Hello Robot", controller.getClientR1());
@@ -281,8 +285,12 @@ public class connectionMenu extends JPanel {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				String ip = ipFieldR2.getText();
-				int port = 5005;
+				String[] address = splitAddress(ipFieldR2.getText());
+				int port = Integer.valueOf(address[1]);
+				if(address[1]==null) {
+					port = 5005;
+				}
+				String ip = address[0];
 				if(controller.connect(ip, port, controller.getClientR2())) {
 					// initial robot setup
 					controller.send("Hello Robot", controller.getClientR2());
@@ -300,9 +308,13 @@ public class connectionMenu extends JPanel {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				String ip = ipFieldTS.getText();
 				TCPClient c = controller.getClientTS();
-				int port = 5000;
+				String[] address = splitAddress(ipFieldTS.getText());
+				int port = Integer.valueOf(address[1]);
+				if(address[1]==null) {
+					port = 5000;
+				}
+				String ip = address[0];
 				if(controller.connect(ip, port, c)) {
 					// do initial setup for Tracking System
 					controller.send("CM_GETSYSTEM", c);
@@ -327,6 +339,10 @@ public class connectionMenu extends JPanel {
 		connectR1.addActionListener(actionListenerbtnR1);
 		connectR2.addActionListener(actionListenerbtnR2);
 		connectTS.addActionListener(actionListenerbtnTS);
+	}
+	
+	private String[] splitAddress(String address) {
+		return address.split(":");
 	}
 	
 	protected JButton getConnectionButton(String serverType) {
