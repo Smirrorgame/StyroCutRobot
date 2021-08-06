@@ -200,7 +200,7 @@ public class QR24 {
 	 */
 	public boolean measuring(TCPClient clientRob) throws InterruptedException {
 		//TODO: Zu Beginn einer Messung muss sichergestellt werden, dass beide Roboter eine Stellung annehmen, sodass keine Kollision zwischen den Robotern
-		//TODO: auftritt, während der Kalibrierung durchgeführt wird.
+		//TODO: auftritt, während die Kalibrierung durchgeführt wird.
 		//TODO: Option1: 	manuell in eine neutrale Position fahren --> ist wahrscheinlich das sicherste. --> PREFERRED
 		//TODO: Option2: 	neutrale Position je Roboter zu Beginn einer Messung anfahren, wobei Roboter beim
 		//					anfahren der neutralen Position crashen könnten, wenn sie ungünstig gestellt sind.
@@ -230,7 +230,7 @@ public class QR24 {
 				return false;
 			}
 			if(responseRob.toLowerCase().contains("false")) {
-				System.out.println("Orientation not valid!\nskipping current measurement");
+				System.out.println("Robot Orientation not valid!\nskipping current measurement");
 				poseMatrices.remove(robPoseMatrix);
 				actualMeasureCount--;
 				continue;
@@ -249,13 +249,23 @@ public class QR24 {
 				return false;
 			}
 			
-			double[] trackingData = Constants.convertPoseDataToDoubleArray(responseTrack, 2);
+			// Check if marker has not been seen
+			if(responseTrack.toLowerCase().contains("n")) {
+				System.out.println("Marker couldn't be seen!\nskipping current measurement");
+				poseMatrices.remove(robPoseMatrix);
+				actualMeasureCount--;
+				continue;
+			}else {
+				double[] trackingData = Constants.convertPoseDataToDoubleArray(responseTrack, 2);
+				
+				//create RealMatrix out off the data that was send by tracking-system
+				double[][] trackingData2DArray = {{trackingData[0],trackingData[1],trackingData[2],trackingData[3]},{trackingData[4],trackingData[5],trackingData[6],trackingData[7]},{trackingData[8],trackingData[9],trackingData[10],trackingData[11]},{0,0,0,1}};
+				RealMatrix m = new Array2DRowRealMatrix (trackingData2DArray);
+				//adding measured matrix to list
+				this.measuredPosesOfMarker.add(m);
+			}
 			
-			//create RealMatrix out off the data that was send by tracking-system
-			double[][] trackingData2DArray = {{trackingData[0],trackingData[1],trackingData[2],trackingData[3]},{trackingData[4],trackingData[5],trackingData[6],trackingData[7]},{trackingData[8],trackingData[9],trackingData[10],trackingData[11]},{0,0,0,1}};
-			RealMatrix m = new Array2DRowRealMatrix (trackingData2DArray);
-			//adding measured matrix to list
-			this.measuredPosesOfMarker.add(m);
+			
 		}
 
 		Collections.reverse(measuredPosesOfMarker);
