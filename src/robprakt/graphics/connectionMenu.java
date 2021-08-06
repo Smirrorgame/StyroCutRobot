@@ -263,11 +263,14 @@ public class connectionMenu extends JPanel {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String[] address = splitAddress(ipFieldR1.getText());
-				int port = Integer.valueOf(address[1]);
-				if(address[1]==null) {
-					port = 5004;
+				int port = 5004;
+				if(address.length==2) {
+					port = Integer.valueOf(address[1]);
 				}
 				String ip = address[0];
+				
+				System.out.println(ip+":"+port);
+				
 				if(controller.connect(ip,port, controller.getClientR1())) {
 					// initial robot setup
 					controller.send("Hello Robot", controller.getClientR1());
@@ -286,9 +289,9 @@ public class connectionMenu extends JPanel {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String[] address = splitAddress(ipFieldR2.getText());
-				int port = Integer.valueOf(address[1]);
-				if(address[1]==null) {
-					port = 5005;
+				int port = 5004;
+				if(address.length==2) {
+					port = Integer.valueOf(address[1]);
 				}
 				String ip = address[0];
 				if(controller.connect(ip, port, controller.getClientR2())) {
@@ -310,9 +313,9 @@ public class connectionMenu extends JPanel {
 			public void actionPerformed(ActionEvent e) {
 				TCPClient c = controller.getClientTS();
 				String[] address = splitAddress(ipFieldTS.getText());
-				int port = Integer.valueOf(address[1]);
-				if(address[1]==null) {
-					port = 5000;
+				int port = 5004;
+				if(address.length==2) {
+					port = Integer.valueOf(address[1]);
 				}
 				String ip = address[0];
 				if(controller.connect(ip, port, c)) {
@@ -341,8 +344,22 @@ public class connectionMenu extends JPanel {
 		connectTS.addActionListener(actionListenerbtnTS);
 	}
 	
+	/**
+	 * extracts/parses ip and port from a given address String separated by a colon
+	 * @param address the address to extract/parse from
+	 * @return ip and port in an array. If port is no number or not given, only ip will be returned
+	 */
 	private String[] splitAddress(String address) {
-		return address.split(":");
+		String[] splitted = address.split(":");
+		if(splitted.length>=2) {
+			try {
+				int port = Integer.valueOf(splitted[1]);
+			} catch (NumberFormatException nfe) {
+				System.err.println("specified port is not a number!");
+				return new String[] {splitted[0]};
+			}
+		}
+		return splitted;
 	}
 	
 	protected JButton getConnectionButton(String serverType) {
